@@ -10,11 +10,11 @@ function scanItems(baseDir: string) {
   return fs.readdirSync(fullPath, { withFileTypes: true })
     .filter(d => d.isDirectory())
     .map(d => {
-      const match = d.name.match(/^([\d\.]+)-(.+)$/)
+      const match = d.name.match(/^(.+)-([\d\.]+)$/)
       if (match) {
-        return { code: match[1], name: match[2], dir: d.name }
+        return { name: match[1], code: match[2], dir: d.name }
       }
-      return { code: '', name: d.name, dir: d.name }
+      return { name: d.name, code: '', dir: d.name }
     })
     .sort((a, b) => a.code.localeCompare(b.code))
 }
