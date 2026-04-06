@@ -1,0 +1,35 @@
+/* 统一表格样式 */
+.vp-doc table {
+  width: 100%;
+  display: table;
+}
+
+.vp-doc th,
+.vp-doc td {
+  padding: 12px 16px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc th {
+  background-color: var(--vp-c-bg-soft);
+  font-weight: 600;
+  text-align: left;
+}
+
+/* 表格首列固定宽度（如果包含代码/名称） */
+.vp-doc td:first-child,
+.vp-doc th:first-child {
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+/* 表格内容过长时自动换行 */
+.vp-doc td {
+  word-break: break-word;
+  max-width: 300px;
+}
+
+/* 表格行 hover 效果 */
+.vp-doc tr:hover td {
+  background-color: var(--vp-c-bg-soft);
+}
