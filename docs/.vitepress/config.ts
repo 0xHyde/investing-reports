@@ -74,7 +74,7 @@ function generateSectionSidebar(baseDir: string, section: string, title: string)
 
       items.push({
         text: CN_MAP[subDir] || subDir,
-        collapsed: true,
+        collapsed: false,
         items: subItems,
       })
     }
@@ -145,9 +145,11 @@ export default defineConfig({
       ],
       '/watchlist/': [
         { text: '👁️ 观察清单', link: '/watchlist/' },
+        ...scanReports(baseDir, 'watchlist'),
       ],
       '/sold/': [
         { text: '📦 已卖出档案', link: '/sold/' },
+        ...scanReports(baseDir, 'sold'),
       ],
       '/framework/': [
         { text: '📖 投资体系', link: '/framework/philosophy' },

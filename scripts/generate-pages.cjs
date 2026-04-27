@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * 根据 portfolio-data.yaml 自动生成所有列表页面
- * 运行方式：node scripts/generate-pages.js
+ * 运行方式：node scripts/generate-pages.cjs
  */
 
 const fs = require('fs')
@@ -27,7 +27,7 @@ function formatProfit(n) {
   return `${sign}${formatNumber(n)}`
 }
 
-// 生成 index.md 首页
+// ====== 生成 index.md 首页 ======
 function generateHomePage(data) {
   const core = data.holdings.filter(h => h.layer === 'core')
   const growth = data.holdings.filter(h => h.layer === 'growth')
@@ -40,17 +40,17 @@ function generateHomePage(data) {
   const coreRatio = ((coreMV / data.meta.total_asset) * 100).toFixed(1)
   const growthRatio = ((growthMV / data.meta.total_asset) * 100).toFixed(1)
 
-  let coreRows = core.map(h => {
+  const coreRows = core.map(h => {
     const name = h.has_report ? `[${h.name}](${h.report_path})` : h.name
-    return `|| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} |`
+    return `| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} |`
   }).join('\n')
 
-  let growthRows = growth.map(h => {
+  const growthRows = growth.map(h => {
     const name = h.has_report ? `[${h.name}](${h.report_path})` : h.name
-    return `|| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} |`
+    return `| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} |`
   }).join('\n')
 
-  let watchlistLinks = watchlist.map(w => {
+  const watchlistLinks = watchlist.map(w => {
     return w.has_report ? `[${w.name}](${w.report_path})` : w.name
   }).join(' · ')
 
@@ -58,13 +58,13 @@ function generateHomePage(data) {
   if (sold.length > 0) {
     const soldRows = sold.map(s => {
       const name = s.has_report ? `[${s.name}](${s.report_path})` : s.name
-      return `|| ${name} | ${s.code} | ${s.sell_date || '—'} | ${s.sell_reason || '—'} |`
+      return `| ${name} | ${s.code} | ${s.sell_date || '—'} | ${s.sell_reason || '—'} |`
     }).join('\n')
     soldSection = `
 ### 已清仓（${sold.length}个）
 
-|| 标的 | 代码 | 卖出日期 | 卖出原因 |
-||-------|------|----------|----------|
+| 标的 | 代码 | 卖出日期 | 卖出原因 |
+|-------|------|----------|----------|
 ${soldRows}
 `
   }
@@ -105,14 +105,14 @@ features:
 
 ### 核心层（${core.length}个）
 
-|| 标的 | 代码 | 分类 | 市值 | 浮盈 |
-||-------|------|------|------:|------:|
+| 标的 | 代码 | 分类 | 市值 | 浮盈 |
+|-------|------|------|------:|------:|
 ${coreRows}
 
 ### 成长层（${growth.length}个）
 
-|| 标的 | 代码 | 分类 | 市值 | 浮盈 |
-||-------|------|------|------:|------:|
+| 标的 | 代码 | 分类 | 市值 | 浮盈 |
+|-------|------|------|------:|------:|
 ${growthRows}
 
 ### 观察清单（${watchlist.length}个）
@@ -134,7 +134,7 @@ ${soldSection}
   console.log('✅ 生成 index.md')
 }
 
-// 生成 portfolio/overview.md
+// ====== 生成 portfolio/overview.md ======
 function generatePortfolioOverview(data) {
   const core = data.holdings.filter(h => h.layer === 'core')
   const growth = data.holdings.filter(h => h.layer === 'growth')
@@ -148,12 +148,12 @@ function generatePortfolioOverview(data) {
 
   const coreRows = core.map((h, i) => {
     const name = h.has_report ? `[${h.name}](${h.report_path})` : h.name
-    return `|| ${i+1} | ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${h.shares}份 | ${formatProfit(h.float_profit)} |`
+    return `| ${i+1} | ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${h.shares}份 | ${formatProfit(h.float_profit)} |`
   }).join('\n')
 
   const growthRows = growth.map((h, i) => {
     const name = h.has_report ? `[${h.name}](${h.report_path})` : h.name
-    return `|| ${i+1} | ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${h.shares}份 | ${formatProfit(h.float_profit)} |`
+    return `| ${i+1} | ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${h.shares}份 | ${formatProfit(h.float_profit)} |`
   }).join('\n')
 
   const content = `# 组合概览
@@ -166,11 +166,11 @@ function generatePortfolioOverview(data) {
 
 ## 📊 资产配置
 
-||| 层级 | 目标 | 实际占比 | 状态 |
-|||------|------|-----------|------|
-||| **核心层** | ≥ 60% | ~${coreRatio}% | ✅ 达标 |
-||| **成长层** | ≤ 25% | ~${growthRatio}% | ✅ 在限内 |
-||| **现金/逆回购** | - | ~${(100 - parseFloat(coreRatio) - parseFloat(growthRatio)).toFixed(1)}% | ✅ 弹药充足 |
+| 层级 | 目标 | 实际占比 | 状态 |
+|------|------|-----------|------|
+| **核心层** | ≥ 60% | ~${coreRatio}% | ✅ 达标 |
+| **成长层** | ≤ 25% | ~${growthRatio}% | ✅ 在限内 |
+| **现金/逆回购** | - | ~${(100 - parseFloat(coreRatio) - parseFloat(growthRatio)).toFixed(1)}% | ✅ 弹药充足 |
 
 > 估算说明：核心层约${coreRatio}%，成长层约${growthRatio}%
 
@@ -180,14 +180,14 @@ function generatePortfolioOverview(data) {
 
 ### 核心层（${core.length}个）
 
-||| 序号 | 标的 | 代码 | 分类 | 市值 | 持仓 | 浮盈 |
-|||:---:|:---|:---|:---:|---:|:---:|---:|
+| 序号 | 标的 | 代码 | 分类 | 市值 | 持仓 | 浮盈 |
+|:---:|:---|:---|:---:|---:|:---:|---:|
 ${coreRows}
 
 ### 成长层（${growth.length}个）
 
-||| 序号 | 标的 | 代码 | 分类 | 市值 | 持仓 | 浮盈 |
-|||:---:|:---|:---|:---:|---:|:---:|---:|
+| 序号 | 标的 | 代码 | 分类 | 市值 | 持仓 | 浮盈 |
+|:---:|:---|:---|:---:|---:|:---:|---:|
 ${growthRows}
 
 ---
@@ -210,7 +210,7 @@ ${growthRows}
   console.log('✅ 生成 portfolio/overview.md')
 }
 
-// 生成 core-layer/index.md
+// ====== 生成 core-layer/index.md ======
 function generateCoreLayerIndex(data) {
   const core = data.holdings.filter(h => h.layer === 'core')
   const byCategory = {}
@@ -234,14 +234,14 @@ function generateCoreLayerIndex(data) {
     const rows = items.map(h => {
       const name = h.has_report ? `[${h.name}](${h.report_path})` : h.name
       const status = h.has_report ? '✅ 深度分析' : '待补充'
-      return `|| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} | ${status} |`
+      return `| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} | ${status} |`
     }).join('\n')
 
     sections += `
 ## ${categoryNames[cat] || cat}
 
-||| 标的 | 代码 | 分类 | 市值 | 浮盈 | 报告 |
-||-------|------|------|------:|------:|:-----|
+| 标的 | 代码 | 分类 | 市值 | 浮盈 | 报告 |
+|-------|------|------|------:|------:|:-----|
 ${rows}
 `
   }
@@ -254,9 +254,7 @@ ${rows}
 > 原则：基石层 ≥ 30%，任何剪减需经级别程序
 
 ---
-
 ${sections}
-
 ---
 
 > ⚠️ 数据来源：portfolio-data.yaml，修改后自动更新。
@@ -266,7 +264,7 @@ ${sections}
   console.log('✅ 生成 core-layer/index.md')
 }
 
-// 生成 growth-layer/index.md
+// ====== 生成 growth-layer/index.md ======
 function generateGrowthLayerIndex(data) {
   const growth = data.holdings.filter(h => h.layer === 'growth')
   const byCategory = {}
@@ -289,14 +287,14 @@ function generateGrowthLayerIndex(data) {
     const rows = items.map(h => {
       const name = h.has_report ? `[${h.name}](${h.report_path})` : h.name
       const status = h.has_report ? '✅ 深度分析' : '待补充'
-      return `|| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} | ${status} |`
+      return `| ${name} | ${h.code} | ${h.sub_category} | ${formatNumber(h.market_value)} | ${formatProfit(h.float_profit)} | ${status} |`
     }).join('\n')
 
     sections += `
 ## ${categoryNames[cat] || cat}
 
-|| 标的 | 代码 | 方向 | 市值 | 浮盈 | 报告 |
-||------|------|------|------:|------:|:-----|
+| 标的 | 代码 | 分类 | 市值 | 浮盈 | 报告 |
+|-------|------|------|------:|------:|:-----|
 ${rows}
 `
   }
@@ -309,9 +307,7 @@ ${rows}
 > 铁律：利润必须向上流动至核心层，不得内滚
 
 ---
-
 ${sections}
-
 ---
 
 ## 当前状态
@@ -327,13 +323,13 @@ ${sections}
   console.log('✅ 生成 growth-layer/index.md')
 }
 
-// 生成 watchlist/index.md
+// ====== 生成 watchlist/index.md ======
 function generateWatchlistIndex(data) {
   const watchlist = data.watchlist || []
 
   const rows = watchlist.map(w => {
     const name = w.has_report ? `[${w.name}](${w.report_path})` : w.name
-    return `|| ${name} | ${w.code} | ${w.reason || '—'} |`
+    return `| ${name} | ${w.code} | ${w.reason || '—'} |`
   }).join('\n')
 
   const content = `# 观察清单
@@ -343,8 +339,8 @@ function generateWatchlistIndex(data) {
 
 ---
 
-|| 标的 | 代码 | 观察原因 |
-||-------|------|----------|
+| 标的 | 代码 | 观察原因 |
+|-------|------|----------|
 ${rows}
 
 ---
@@ -356,7 +352,7 @@ ${rows}
   console.log('✅ 生成 watchlist/index.md')
 }
 
-// 主函数
+// ====== 主函数 ======
 function main() {
   console.log('🔧 开始生成页面...')
   const data = loadData()
