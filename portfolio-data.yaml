@@ -16,7 +16,6 @@ holdings:
     category: "high-dividend"
     sub_category: "银行"
     shares: 1300
-    available: 900
     market_value: 51194
     float_profit: 706.80
     has_report: true
@@ -28,7 +27,6 @@ holdings:
     category: "global-broad"
     sub_category: "美股科技"
     shares: 5000
-    available: 5000
     market_value: 10300
     float_profit: 1251.55
     has_report: false
@@ -39,7 +37,6 @@ holdings:
     category: "dividend-etfs"
     sub_category: "红利ETF"
     shares: 8000
-    available: 7000
     market_value: 9584
     float_profit: 37.52
     has_report: true
@@ -51,7 +48,6 @@ holdings:
     category: "high-dividend"
     sub_category: "通信/运营商"
     shares: 100
-    available: 100
     market_value: 9550
     float_profit: 199.10
     has_report: true
@@ -63,7 +59,6 @@ holdings:
     category: "high-dividend"
     sub_category: "白电/消费"
     shares: 300
-    available: 300
     market_value: 6156
     float_profit: -34.60
     has_report: true
@@ -75,7 +70,6 @@ holdings:
     category: "dividend-etfs"
     sub_category: "港股红利"
     shares: 4000
-    available: 4000
     market_value: 5764
     float_profit: 120.20
     has_report: true
@@ -87,7 +81,6 @@ holdings:
     category: "high-dividend"
     sub_category: "电力/火电"
     shares: 1000
-    available: 500
     market_value: 4890
     float_profit: 24.54
     has_report: true
@@ -100,7 +93,6 @@ holdings:
     category: "stocks"
     sub_category: "资源/黄金铜"
     shares: 200
-    available: 0
     market_value: 6712
     float_profit: -85.67
     has_report: true
@@ -112,7 +104,6 @@ holdings:
     category: "stocks"
     sub_category: "电力/核能"
     shares: 800
-    available: 600
     market_value: 7216
     float_profit: -15.71
     has_report: true
@@ -124,7 +115,6 @@ holdings:
     category: "etfs"
     sub_category: "电网设备"
     shares: 1500
-    available: 1500
     market_value: 2974.5
     float_profit: 23.85
     has_report: true
@@ -136,7 +126,6 @@ holdings:
     category: "etfs"
     sub_category: "半导体设备"
     shares: 2000
-    available: 0
     market_value: 1950
     float_profit: 57.91
     has_report: true
@@ -148,7 +137,6 @@ holdings:
     category: "etfs"
     sub_category: "创业板成长"
     shares: 1200
-    available: 700
     market_value: 931.2
     float_profit: 4.35
     has_report: true
@@ -160,7 +148,6 @@ holdings:
     category: "etfs"
     sub_category: "航空航天军工"
     shares: 600
-    available: 400
     market_value: 782.4
     float_profit: 1.56
     has_report: true
