@@ -2,6 +2,16 @@ import { defineConfig } from 'vitepress'
 import fs from 'fs'
 import path from 'path'
 
+// 中文映射表
+const CN_MAP: Record<string, string> = {
+  'high-dividend': '🏦 高息股个股',
+  'dividend-etfs': '📊 红利ETF',
+  'global-broad': '🌍 全球宽基',
+  'policy-base': '🏛️ 政策基础',
+  'etfs': '📈 行业ETF',
+  'stocks': '🔬 个股',
+}
+
 // Scan directories for deep-dive.md reports
 function scanReports(baseDir: string, relDir: string): any[] {
   const fullPath = path.join(baseDir, relDir)
@@ -63,7 +73,7 @@ function generateSectionSidebar(baseDir: string, section: string, title: string)
       subItems.push(...reports)
 
       items.push({
-        text: subDir,
+        text: CN_MAP[subDir] || subDir,
         collapsed: true,
         items: subItems,
       })
