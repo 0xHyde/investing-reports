@@ -2,83 +2,199 @@ import { defineConfig } from 'vitepress'
 import fs from 'fs'
 import path from 'path'
 
-// 扫描目录获取股票/ETF列表
-function scanItems(baseDir: string) {
-  const fullPath = path.join(__dirname, '../', baseDir)
+// Scan directories for deep-dive.md reports
+function scanReports(baseDir: string, relDir: string): any[] {
+  const fullPath = path.join(baseDir, relDir)
   if (!fs.existsSync(fullPath)) return []
-  
-  return fs.readdirSync(fullPath, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => {
-      const match = d.name.match(/^(.+)-([\d\.]+)$/)
-      if (match) {
-        return { name: match[1], code: match[2], dir: d.name }
+
+  const items: any[] = []
+  const entries = fs.readdirSync(fullPath, { withFileTypes: true })
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+
+    const dirName = entry.name
+    const reportPath = path.join(fullPath, dirName, 'deep-dive.md')
+
+    if (fs.existsSync(reportPath)) {
+      // Extract name and code from dirname like "阳光电源-300274"
+      const match = dirName.match(/^(.+)-([\d\.]+)$/)
+      const displayName = match ? `${match[1]} (${match[2]})` : dirName
+      const link = `/${relDir}/${dirName}/deep-dive`
+
+      items.push({
+        text: displayName,
+        link: link,
+      })
+    }
+  }
+
+  return items.sort((a, b) => a.text.localeCompare(b.text))
+}
+
+// Generate sidebar for a section
+function generateSectionSidebar(baseDir: string, section: string, title: string): any {
+  const items: any[] = []
+  const sectionPath = path.join(baseDir, section)
+
+  if (!fs.existsSync(sectionPath)) {
+    return { text: title, items: [] }
+  }
+
+  const entries = fs.readdirSync(sectionPath, { withFileTypes: true })
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+
+    const subDir = entry.name
+    const subPath = path.join(sectionPath, subDir)
+    const reports = scanReports(baseDir, `${section}/${subDir}`)
+
+    // Check for index.md in subdirectory
+    const hasIndex = fs.existsSync(path.join(subPath, 'index.md'))
+
+    if (reports.length > 0 || hasIndex) {
+      const subItems: any[] = []
+
+      if (hasIndex) {
+        subItems.push({ text: '📋 概览', link: `/${section}/${subDir}/` })
       }
-      return { name: d.name, code: '', dir: d.name }
+
+      subItems.push(...reports)
+
+      items.push({
+        text: subDir,
+        collapsed: true,
+        items: subItems,
+      })
+    }
+  }
+
+  // Also check for reports directly in the section
+  const directReports = scanReports(baseDir, section)
+  items.push(...directReports)
+
+  return { text: title, items }
+}
+
+// Scan framework docs
+function scanFramework(baseDir: string): any[] {
+  const fwPath = path.join(baseDir, 'framework')
+  if (!fs.existsSync(fwPath)) return []
+
+  return fs.readdirSync(fwPath)
+    .filter(f => f.endsWith('.md') && f !== 'index.md')
+    .map(f => {
+      const name = f.replace('.md', '')
+      const textMap: Record<string, string> = {
+        'philosophy': '📜 投资哲学纲领',
+        'two-layer-policy': '🏗️ 两层策略',
+        'growth-layer-policy': '🚀 成长层细则',
+        'evolutionary-rules': '📋 进化规则',
+      }
+      return {
+        text: textMap[name] || name,
+        link: `/framework/${name}`,
+      }
     })
-    .sort((a, b) => a.code.localeCompare(b.code))
+    .sort((a, b) => a.text.localeCompare(b.text))
 }
 
-// 生成侧边栏
-function generateSidebar(basePath: string, items: any[]) {
-  const sidebars: Record<string, any> = {}
-  
-  items.forEach(item => {
-    const key = `/${basePath}/${item.dir}/`
-    sidebars[key] = [
-      { text: `← 返回列表`, link: `/${basePath}/` },
-      { text: `${item.name} (${item.code})` },
-      { text: '📊 快速分析报告', link: `/${basePath}/${item.dir}/quick-analysis` }
-    ]
-  })
-  
-  return sidebars
-}
-
-// 获取股票和ETF列表
-const stocks = scanItems('stocks')
-const etfs = scanItems('etfs')
+const baseDir = path.join(__dirname, '../')
 
 export default defineConfig({
   title: '投资研究报告',
-  description: '股票与ETF投资分析',
+  description: '定量参考，叙事驱动 — 个股与ETF深度分析',
   base: '/investing-reports/',
-  
+  lang: 'zh-CN',
+
   themeConfig: {
+    logo: '',
+
     nav: [
-      { text: '首页', link: '/' },
-      { text: `股票(${stocks.length})`, link: '/stocks/' },
-      { text: `ETF(${etfs.length})`, link: '/etfs/' }
+      { text: '🏠 首页', link: '/' },
+      { text: '📊 组合', link: '/portfolio/' },
+      { text: '🛡️ 核心层', link: '/core-layer/' },
+      { text: '🚀 成长层', link: '/growth-layer/' },
+      { text: '👁️ 观察', link: '/watchlist/' },
+      { text: '📖 体系', link: '/framework/philosophy' },
     ],
-    
+
     sidebar: {
-      '/stocks/': [
-        {
-          text: '股票列表',
-          items: stocks.length > 0 
-            ? stocks.map(s => ({ text: `${s.name} (${s.code})`, link: `/stocks/${s.dir}/quick-analysis` }))
-            : [{ text: '暂无报告', link: '#' }]
-        }
+      '/portfolio/': [
+        { text: '📊 组合概览', link: '/portfolio/' },
+        { text: '📈 资产配置', link: '/portfolio/overview' },
       ],
-      ...generateSidebar('stocks', stocks),
-      
-      '/etfs/': [
-        {
-          text: 'ETF列表',
-          items: etfs.length > 0
-            ? etfs.map(e => ({ text: `${e.name} (${e.code})`, link: `/etfs/${e.dir}/quick-analysis` }))
-            : [{ text: '暂无报告', link: '#' }]
-        }
+      '/core-layer/': [
+        { text: '🛡️ 核心层概览', link: '/core-layer/' },
+        generateSectionSidebar(baseDir, 'core-layer', '核心资产'),
       ],
-      ...generateSidebar('etfs', etfs)
+      '/growth-layer/': [
+        { text: '🚀 成长层概览', link: '/growth-layer/' },
+        generateSectionSidebar(baseDir, 'growth-layer', '成长标的'),
+      ],
+      '/watchlist/': [
+        { text: '👁️ 观察清单', link: '/watchlist/' },
+      ],
+      '/sold/': [
+        { text: '📦 已卖出档案', link: '/sold/' },
+      ],
+      '/framework/': [
+        { text: '📖 投资体系', link: '/framework/philosophy' },
+        ...scanFramework(baseDir),
+      ],
     },
-    
+
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/yourname/investing-reports' }
+      { icon: 'github', link: 'https://github.com/0xHyde/investing-reports' },
     ],
-    
+
     search: {
-      provider: 'local'
-    }
-  }
+      provider: 'local',
+      options: {
+        locales: {
+          root: {
+            translations: {
+              button: {
+                buttonText: '搜索',
+                buttonAriaLabel: '搜索',
+              },
+              modal: {
+                noResultsText: '未找到结果',
+                resetButtonTitle: '清除',
+                footer: {
+                  selectText: '选择',
+                  navigateText: '导航',
+                  closeText: '关闭',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    outline: {
+      label: '目录',
+      level: [2, 4],
+    },
+
+    docFooter: {
+      prev: '上一篇',
+      next: '下一篇',
+    },
+
+    returnToTopLabel: '返回顶部',
+    sidebarMenuLabel: '菜单',
+    darkModeSwitchLabel: '深色模式',
+
+    footer: {
+      message: '定量参考，叙事驱动',
+      copyright: '© 2026 投资研究',
+    },
+  },
+
+  markdown: {
+    lineNumbers: true,
+  },
 })

@@ -4,50 +4,61 @@ layout: home
 hero:
   name: "投资研究报告"
   text: ""
-  tagline: 股票与ETF的系统性分析
+  tagline: 定量为参考，叙事为将军
   actions:
     - theme: brand
-      text: 查看股票报告
-      link: /stocks/
+      text: 📊 组合概览
+      link: /portfolio/
     - theme: alt
-      text: 查看ETF报告
-      link: /etfs/
+      text: 🎯 成长层
+      link: /growth-layer/
+    - theme: alt
+      text: 🛡️ 核心层
+      link: /core-layer/
 
 features:
-  - title: 📈 股票分析
-    details: 技术面、基本面、行业对比、市场情绪全面覆盖
-  - title: 🎯 ETF研究
-    details: 宽基、行业、红利、跨境、黄金分类分析
-  - title: ⏰ 实时更新
-    details: 自动化报告生成与站点部署
+  - title: 📌 核心层 ≥ 60%
+    details: 高息股个股 + 红利ETF + 全球宽基 + 政策基础
+    link: /core-layer/
+  - title: 🚀 成长层 ≤ 25%
+    details: 为未来清晰叙事付费的进攻性配置，利润必须向上流动
+    link: /growth-layer/
+  - title: 📋 观察清单
+    details: 等待触发条件的标的，季度检查是否触发
+    link: /watchlist/
 ---
 
-## 最新报告
+## 📊 最新报告
 
-::: tip 提示
-使用 Kimi Code CLI 的 `stock-quick-analyzer` 或 `etf-quick-analyzer` skill 生成分析报告后，站点会自动更新。
-:::
+### 成长层
 
-### 股票
+| 标的 | 代码 | 类型 | 日期 |
+|-------|------|------|------|
+| 阳光电源 | 300274 | 个股 | 2026-04-27 |
+| 紫金矿业 | 601899 | 个股 | 2026-04-24 |
+| 宗申动力 | 001696 | 个股 | 2026-04-27 |
+| 万丰奥威 | 002085 | 个股 | 2026-04-27 |
+| 和而泰 | 002402 | 个股 | 2026-04-27 |
+| 中国卫星 | 600118 | 个股 | 2026-04-27 |
+| 汇川技术 | 300124 | 个股 | 2026-04-27 |
+| 拓普集团 | 601689 | 个股 | 2026-04-27 |
+| 电网设备ETF | 159326 | ETF | 2026-04-27 |
 
-> 暂无报告，请使用 `stock-quick-analyzer` skill 分析股票
+### 核心层
 
-### ETF
-
-> 暂无报告，请使用 `etf-quick-analyzer` skill 分析ETF
+| 标的 | 代码 | 类型 | 日期 |
+|-------|------|------|------|
+| 纳指100 ETF | 561980 | ETF | 2026-04-27 |
 
 ---
 
-## 使用流程
+## 📖 投资体系
 
-```
-1. 使用 skill 分析股票/ETF
-   ↓
-2. 报告保存到 analyses/ 和 docs/
-   ↓
-3. git commit && git push
-   ↓
-4. GitHub Actions 自动部署
-   ↓
-5. 站点更新完成
-```
+- [投资哲学纲颈](/framework/philosophy.md) — 十大红线
+- [两层策略](/framework/two-layer-policy.md) — 核心层 + 成长层
+- [成长层管理细则](/framework/growth-layer-policy.md) — 利润流动 + 时间止损
+- [进化规则](/framework/evolutionary-rules.md) — 小资金过渡期条款
+
+---
+
+> 💡 本站点所有报告均基于数据验证原则生成，定量为参考，叙事为将军。
