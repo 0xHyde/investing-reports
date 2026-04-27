@@ -1,0 +1,196 @@
+{
+  "600036": {
+    "name": "招商银行",
+    "revenue": "337488000000.0",
+    "revenue_yoy": "-0.4821259543",
+    "net_profit": "148391000000.0",
+    "net_profit_yoy": "1.22",
+    "roe": "",
+    "roe_diluted": "",
+    "eps": "",
+    "bps": "",
+    "gross_margin": "nan",
+    "q1_revenue": "83751000000.0",
+    "q1_revenue_yoy": "-3.0850411377",
+    "q1_net_profit": "37286000000.0",
+    "q1_net_profit_yoy": "-2.08",
+    "dividends": [
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2003-07-15"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2004-05-10"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2005-06-17"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2006-02-23"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2006-06-15"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2006-09-20"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2007-07-03"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2008-07-25"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2009-07-02"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2010-06-30"
+      }
+    ]
+  },
+  "600941": {
+    "name": "中国移动",
+    "revenue": "1040759000000.0",
+    "revenue_yoy": "3.1159932191",
+    "net_profit": "138373000000.0",
+    "net_profit_yoy": "5.0",
+    "roe": "",
+    "roe_diluted": "",
+    "eps": "",
+    "bps": "",
+    "gross_margin": "29.0160354126",
+    "q1_revenue": "263760000000.0",
+    "q1_revenue_yoy": "0.0200980634",
+    "q1_net_profit": "30631000000.0",
+    "q1_net_profit_yoy": "3.5",
+    "dividends": [
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2022-05-31"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2022-09-05"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2023-06-06"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2023-08-31"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2024-06-05"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2024-08-30"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2025-06-05"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2025-08-29"
+      }
+    ]
+  },
+  "601985": {
+    "name": "中国核电",
+    "revenue": "77272058526.64",
+    "revenue_yoy": "3.0882675329",
+    "net_profit": "8777342050.34",
+    "net_profit_yoy": "-17.38",
+    "roe": "",
+    "roe_diluted": "",
+    "eps": "",
+    "bps": "",
+    "gross_margin": "42.9086055721",
+    "q1_revenue": "20272701537.69",
+    "q1_revenue_yoy": "12.6990751703",
+    "q1_net_profit": "3136994872.4",
+    "q1_net_profit_yoy": "2.55",
+    "dividends": [
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2016-07-12"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2017-07-26"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2018-07-18"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2019-07-18"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2020-07-16"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2021-07-15"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2022-07-14"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2023-07-13"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2024-07-15"
+      },
+      {
+        "year": "",
+        "dividend": "",
+        "record_date": "2024-11-29"
+      }
+    ]
+  }
+}
