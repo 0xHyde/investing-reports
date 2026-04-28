@@ -317,6 +317,13 @@ ${sections}
 - 距离 25% 上限还有约 **${(25 - parseFloat(ratio)).toFixed(1)}%** 空间
 
 > 有充足的加仓空间。关注回调机会。
+
+---
+
+## 📋 深度分析报告
+
+- [成长层标的质量回顾与调仓建议（2026-04-28）](/growth-layer/review-20260428)
+  > 基于最新Q1财报的全标的体检报告，已逐只核对年份
 `
 
   fs.writeFileSync(path.join(DOCS_DIR, 'growth-layer/index.md'), content, 'utf8')
