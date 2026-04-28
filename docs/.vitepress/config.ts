@@ -141,6 +141,8 @@ export default defineConfig({
       ],
       '/growth-layer/': [
         { text: '🚀 成长层概览', link: '/growth-layer/' },
+        { text: '📋 标的质量回顾（2026-04-28）', link: '/growth-layer/review-20260428' },
+        { text: '🔍 新方向标的筛选', link: '/growth-layer/new-targets-screening-20260428' },
         generateSectionSidebar(baseDir, 'growth-layer', '成长标的'),
       ],
       '/watchlist/': [
