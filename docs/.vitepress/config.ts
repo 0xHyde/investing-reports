@@ -87,6 +87,28 @@ function generateSectionSidebar(baseDir: string, section: string, title: string)
   return { text: title, items }
 }
 
+// Scan daily review docs
+function scanDailyReviews(baseDir: string): any[] {
+  const drPath = path.join(baseDir, 'daily-review')
+  if (!fs.existsSync(drPath)) return []
+
+  return fs.readdirSync(drPath)
+    .filter(f => f.endsWith('.md') && f !== 'index.md')
+    .map(f => {
+      const name = f.replace('.md', '')
+      // Format: 2026-04-28 → 04-28
+      const dateMatch = name.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+      const displayName = dateMatch
+        ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
+        : name
+      return {
+        text: displayName,
+        link: `/daily-review/${name}`,
+      }
+    })
+    .sort((a, b) => b.text.localeCompare(a.text)) // 倒序，最新在前
+}
+
 // Scan framework docs
 function scanFramework(baseDir: string): any[] {
   const fwPath = path.join(baseDir, 'framework')
@@ -126,6 +148,7 @@ export default defineConfig({
       { text: '📊 组合', link: '/portfolio/' },
       { text: '🛡️ 核心层', link: '/core-layer/' },
       { text: '🚀 成长层', link: '/growth-layer/' },
+      { text: '📅 每日复盘', link: '/daily-review/' },
       { text: '👁️ 观察', link: '/watchlist/' },
       { text: '📖 体系', link: '/framework/philosophy' },
     ],
@@ -152,6 +175,10 @@ export default defineConfig({
       '/sold/': [
         { text: '📦 已卖出档案', link: '/sold/' },
         ...scanReports(baseDir, 'sold'),
+      ],
+      '/daily-review/': [
+        { text: '📅 每日复盘概览', link: '/daily-review/' },
+        ...scanDailyReviews(baseDir),
       ],
       '/framework/': [
         { text: '📖 投资体系', link: '/framework/philosophy' },
