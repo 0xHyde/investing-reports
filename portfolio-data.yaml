@@ -1,46 +1,28 @@
 # 统一持仓数据源
-# 修改此文件后运行 `npm run docs:build` 即可自动更新所有页面
+# 修改此文件后运行 `node scripts/generate-pages.cjs && npm run docs:build` 即可自动更新所有页面
 meta:
-  total_asset: 163070.40
-  screenshot_time: "2026-04-27 20:24:14"
-  account: "国泰海通 71****38"
-  cash_approx: 100.00
+  total_asset: 163539.41
+  screenshot_time: "2026-04-28 15:34:00"
+  account: "国泰海通 **7538"
+  cash_approx: 203.41
   reverse_repo: 52000
 
 # 当前持有标的
 holdings:
-  # 核心层
+  # 核心层 - 高息股个股
   - name: "招商银行"
     code: "600036"
     layer: "core"
     category: "high-dividend"
     sub_category: "银行"
     shares: 1300
-    market_value: 51194
-    float_profit: 706.80
+    available: 1300
+    cost: 38.836
+    price: 39.600
+    market_value: 51480
+    float_profit: 992.80
     has_report: true
     report_path: "/core-layer/high-dividend/招商银行-600036/deep-dive"
-
-  - name: "纳斯达克100ETF招商"
-    code: "159941"
-    layer: "core"
-    category: "global-broad"
-    sub_category: "美股科技"
-    shares: 5000
-    market_value: 10300
-    float_profit: 1251.55
-    has_report: false
-
-  - name: "红利低波ETF"
-    code: "563020"
-    layer: "core"
-    category: "dividend-etfs"
-    sub_category: "红利ETF"
-    shares: 8000
-    market_value: 9584
-    float_profit: 37.52
-    has_report: true
-    report_path: "/core-layer/dividend-etfs/红利低波-563020/deep-dive"
 
   - name: "中国移动"
     code: "600941"
@@ -48,10 +30,27 @@ holdings:
     category: "high-dividend"
     sub_category: "通信/运营商"
     shares: 100
-    market_value: 9550
-    float_profit: 199.10
+    available: 100
+    cost: 93.509
+    price: 96.030
+    market_value: 9603
+    float_profit: 252.10
     has_report: true
     report_path: "/core-layer/high-dividend/中国移动-600941/deep-dive"
+
+  - name: "国电电力"
+    code: "600795"
+    layer: "core"
+    category: "policy-base"
+    sub_category: "电力/火电"
+    shares: 1500
+    available: 1000
+    cost: 4.864
+    price: 4.920
+    market_value: 7380
+    float_profit: 84.31
+    has_report: true
+    report_path: "/core-layer/high-dividend/国电电力-600795/deep-dive"
 
   - name: "海尔智家"
     code: "600690"
@@ -59,10 +58,27 @@ holdings:
     category: "high-dividend"
     sub_category: "白电/消费"
     shares: 300
-    market_value: 6156
-    float_profit: -34.60
+    available: 300
+    cost: 20.635
+    price: 21.340
+    market_value: 6402
+    float_profit: 211.40
     has_report: true
     report_path: "/core-layer/high-dividend/海尔智家-600690/deep-dive"
+
+  # 核心层 - 红利ETF
+  - name: "红利低波ETF易方达"
+    code: "563020"
+    layer: "core"
+    category: "dividend-etfs"
+    sub_category: "A股红利"
+    shares: 8000
+    available: 8000
+    cost: 1.193
+    price: 1.199
+    market_value: 9592
+    float_profit: 45.52
+    has_report: false
 
   - name: "恒生红利低波ETF"
     code: "159545"
@@ -70,31 +86,39 @@ holdings:
     category: "dividend-etfs"
     sub_category: "港股红利"
     shares: 4000
-    market_value: 5764
-    float_profit: 120.20
-    has_report: true
-    report_path: "/core-layer/dividend-etfs/恒生红利低波-159545/deep-dive"
+    available: 4000
+    cost: 1.411
+    price: 1.440
+    market_value: 5760
+    float_profit: 116.20
+    has_report: false
 
-  - name: "国电电力"
-    code: "600795"
+  # 核心层 - 全球宽基
+  - name: "纳指ETF"
+    code: "159659"
     layer: "core"
-    category: "high-dividend"
-    sub_category: "电力/火电"
-    shares: 1000
-    market_value: 4890
-    float_profit: 24.54
-    has_report: true
-    report_path: "/core-layer/high-dividend/国电电力-600795/deep-dive"
+    category: "global-broad"
+    sub_category: "美股科技"
+    shares: 5000
+    available: 5000
+    cost: 1.810
+    price: 2.059
+    market_value: 10295
+    float_profit: 1246.55
+    has_report: false
 
-  # 成长层
+  # 成长层 - 个股
   - name: "紫金矿业"
     code: "601899"
     layer: "growth"
     category: "stocks"
     sub_category: "资源/黄金铜"
     shares: 200
-    market_value: 6712
-    float_profit: -85.67
+    available: 0
+    cost: 33.851
+    price: 32.950
+    market_value: 6590
+    float_profit: -180.22
     has_report: true
     report_path: "/growth-layer/stocks/紫金矿业-601899/deep-dive"
 
@@ -103,55 +127,55 @@ holdings:
     layer: "growth"
     category: "stocks"
     sub_category: "电力/核能"
-    shares: 800
-    market_value: 7216
-    float_profit: -15.71
+    shares: 1000
+    available: 800
+    cost: 9.030
+    price: 9.090
+    market_value: 9090
+    float_profit: 60.11
     has_report: true
     report_path: "/growth-layer/stocks/中国核电-601985/deep-dive"
 
+  # 成长层 - ETF
   - name: "电网设备ETF华夏"
     code: "159326"
     layer: "growth"
     category: "etfs"
     sub_category: "电网设备"
-    shares: 1500
-    market_value: 2974.5
-    float_profit: 23.85
+    shares: 2000
+    available: 1500
+    cost: 1.960
+    price: 1.943
+    market_value: 3886
+    float_profit: -34.20
     has_report: true
     report_path: "/growth-layer/etfs/电网设备ETF华夏-159326/deep-dive"
 
-  - name: "半导体设备ETF国泰"
-    code: "159516"
+  - name: "恒生科技ETF易方达"
+    code: "513010"
     layer: "growth"
     category: "etfs"
-    sub_category: "半导体设备"
-    shares: 2000
-    market_value: 1950
-    float_profit: 57.91
-    has_report: true
-    report_path: "/growth-layer/etfs/半导体设备ETF国泰-159516/deep-dive"
+    sub_category: "港股科技"
+    shares: 8000
+    available: 8000
+    cost: 0.647
+    price: 0.639
+    market_value: 5112
+    float_profit: -61.25
+    has_report: false
 
-  - name: "创成长ETF华夏"
+  - name: "创业板成长ETF华夏"
     code: "159967"
     layer: "growth"
     category: "etfs"
     sub_category: "创业板成长"
-    shares: 1200
-    market_value: 931.2
-    float_profit: 4.35
-    has_report: true
-    report_path: "/growth-layer/etfs/创成长ETF华夏-159967/deep-dive"
-
-  - name: "航空航天ETF华夏"
-    code: "159227"
-    layer: "growth"
-    category: "etfs"
-    sub_category: "航空航天军工"
-    shares: 600
-    market_value: 782.4
-    float_profit: 1.56
-    has_report: true
-    report_path: "/growth-layer/etfs/航空航天ETF华夏-159227/deep-dive"
+    shares: 1500
+    available: 1200
+    cost: 0.770
+    price: 0.764
+    market_value: 1146
+    float_profit: -9.46
+    has_report: false
 
 # 观察清单
 watchlist:
@@ -161,41 +185,31 @@ watchlist:
     report_path: "/watchlist/阳光电源-300274/deep-dive"
     reason: "新能源龙头，等待合适价位"
 
-  - name: "宗申动力"
-    code: "001696"
-    has_report: true
-    report_path: "/watchlist/宗申动力-001696/deep-dive"
-    reason: "低空经济概念"
-
-  - name: "万丰奥威"
-    code: "002085"
-    has_report: true
-    report_path: "/watchlist/万丰奥威-002085/deep-dive"
-    reason: "低空经济+铝合金"
-
   - name: "和而泰"
     code: "002402"
-    has_report: true
-    report_path: "/watchlist/和而泰-002402/deep-dive"
+    has_report: false
     reason: "智能控制器"
 
   - name: "中国卫星"
     code: "600118"
-    has_report: true
-    report_path: "/watchlist/中国卫星-600118/deep-dive"
+    has_report: false
     reason: "航天军工"
 
   - name: "汇川技术"
     code: "300124"
-    has_report: true
-    report_path: "/watchlist/汇川技术-300124/deep-dive"
-    reason: "工业自动化"
+    has_report: false
+    reason: "工业自动化+机器人"
 
   - name: "拓普集团"
     code: "601689"
-    has_report: true
-    report_path: "/watchlist/拓普集团-601689/deep-dive"
+    has_report: false
     reason: "汽车零部件"
 
 # 已清仓标的
-sold: []
+sold:
+  - name: "航空航天ETF华夏"
+    code: "159227"
+    sell_date: "2026-04-28"
+    sell_reason: "策略调仓，止盈/止损离场"
+    final_profit: -21.28
+    has_report: false
