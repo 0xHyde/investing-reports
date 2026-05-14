@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire 财务自由计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 28px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .icon {
+            font-size: 20px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.2);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233,69,96,0.1);
+        }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .result-card {
+            background: linear-gradient(135deg, rgba(233,69,96,0.15), rgba(255,107,107,0.1));
+            border: 1px solid rgba(233,69,96,0.3);
+        }
+        .result-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #e94560;
+            text-align: center;
+            margin: 8px 0;
+        }
+        .result-label {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+        }
+        .result-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .detail-item {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .detail-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .slider-group {
+            margin-bottom: 16px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .slider-group input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e94560;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(233,69,96,0.5);
+        }
+        .year-breakdown {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+        .year-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .year-row:nth-child(odd) {
+            background: rgba(255,255,255,0.03);
+        }
+        .year-row.fire-achieved {
+            background: rgba(76,175,80,0.15);
+            color: #4caf50;
+            font-weight: 600;
+        }
+        .btn-calculate {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233,69,96,0.4);
+        }
+        .savings-rate {
+            text-align: center;
+            padding: 16px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+        .savings-rate .rate {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4caf50;
+        }
+        .savings-rate .label {
+            font-size: 14px;
+            color: #888;
+        }
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Fire 财务自由计算器</h1>
+        <p class="subtitle">计算你距离财务自由还有多远</p>
+
+        <!-- 收入输入 -->
+        <div class="card">
+            <div class="card-title"><span class="icon">💰</span> 收入情况</div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>月工资（税后）</label>
+                    <input type="number" id="monthlySalary" placeholder="15000" value="15000">
+                </div>
+                <div class="input-group">
+                    <label>年终奖（税后）</label>
+                    <input type="number" id="yearEndBonus" placeholder="30000" value="30000">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>其他年收入</label>
+                    <input type="number" id="otherIncome" placeholder="0" value="0">
+                </div>
+                <div class="input-group">
+                    <label>当前已有资产</label>
+                    <input type="number" id="currentAssets" placeholder="100000" value="100000">
+                </div>
+            </div>
+        </div>
+
+        <!-- 支出输入 -->
+        <div class="card">
+            <div class="card-title"><span class="icon">💸</span> 支出情况</div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>月支出</label>
+                    <input type="number" id="monthlyExpense" placeholder="8000" value="8000">
+                </div>
+                <div class="input-group">
+                    <label>年额外支出</label>
+                    <input type="number" id="yearExtraExpense" placeholder="20000" value="20000">
+                </div>
+            </div>
+        </div>
+
+        <!-- 投资参数 -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📈</span> 投资参数</div>
+            <div class="slider-group">
+                <label>
+                    <span>年化投资收益率</span>
+                    <span id="returnRateValue">7%</span>
+                </label>
+                <input type="range" id="returnRate" min="1" max="15" value="7" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label>
+                    <span>Fire 提款率（4%法则）</span>
+                    <span id="withdrawRateValue">4%</span>
+                </label>
+                <input type="range" id="withdrawRate" min="2" max="6" value="4" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label>
+                    <span>收入年增长率</span>
+                    <span id="incomeGrowthValue">5%</span>
+                </label>
+                <input type="range" id="incomeGrowth" min="0" max="15" value="5" step="1">
+            </div>
+            <div class="slider-group">
+                <label>
+                    <span>支出年增长率（通胀）</span>
+                    <span id="expenseGrowthValue">3%</span>
+                </label>
+                <input type="range" id="expenseGrowth" min="0" max="10" value="3" step="0.5">
+            </div>
+        </div>
+
+        <button class="btn-calculate" onclick="calculateFire()">🚀 计算 Fire 时间</button>
+
+        <!-- 结果展示 -->
+        <div class="card result-card" id="resultCard" style="display:none;">
+            <div class="card-title"><span class="icon">🎯</span> Fire 目标分析</div>
+            <div class="result-number" id="fireYears">-- 年</div>
+            <div class="result-label">预计达到财务自由</div>
+            
+            <div class="savings-rate">
+                <div class="rate" id="savingsRate">--%</div>
+                <div class="label">当前储蓄率</div>
+            </div>
+
+            <div class="result-detail">
+                <div class="detail-item">
+                    <div class="detail-value" id="targetAssets">--</div>
+                    <div class="detail-label">Fire 目标资产</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-value" id="annualIncome">--</div>
+                    <div class="detail-label">年收入</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-value" id="annualExpense">--</div>
+                    <div class="detail-label">年支出</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-value" id="annualSavings">--</div>
+                    <div class="detail-label">年储蓄</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            
+            <div class="card-title"><span class="icon">📊</span> 逐年资产增长</div>
+            <div class="year-breakdown" id="yearBreakdown"></div>
+        </div>
+    </div>
+
+    <script>
+        // 滑块值更新
+        document.getElementById('returnRate').oninput = function() {
+            document.getElementById('returnRateValue').textContent = this.value + '%';
+        };
+        document.getElementById('withdrawRate').oninput = function() {
+            document.getElementById('withdrawRateValue').textContent = this.value + '%';
+        };
+        document.getElementById('incomeGrowth').oninput = function() {
+            document.getElementById('incomeGrowthValue').textContent = this.value + '%';
+        };
+        document.getElementById('expenseGrowth').oninput = function() {
+            document.getElementById('expenseGrowthValue').textContent = this.value + '%';
+        };
+
+        function formatMoney(num) {
+            if (num >= 100000000) {
+                return (num / 100000000).toFixed(2) + '亿';
+            } else if (num >= 10000) {
+                return (num / 10000).toFixed(1) + '万';
+            } else {
+                return num.toFixed(0);
+            }
+        }
+
+        function calculateFire() {
+            // 获取输入
+            const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+            const yearEndBonus = parseFloat(document.getElementById('yearEndBonus').value) || 0;
+            const otherIncome = parseFloat(document.getElementById('otherIncome').value) || 0;
+            const currentAssets = parseFloat(document.getElementById('currentAssets').value) || 0;
+            const monthlyExpense = parseFloat(document.getElementById('monthlyExpense').value) || 0;
+            const yearExtraExpense = parseFloat(document.getElementById('yearExtraExpense').value) || 0;
+            
+            const returnRate = parseFloat(document.getElementById('returnRate').value) / 100;
+            const withdrawRate = parseFloat(document.getElementById('withdrawRate').value) / 100;
+            const incomeGrowth = parseFloat(document.getElementById('incomeGrowth').value) / 100;
+            const expenseGrowth = parseFloat(document.getElementById('expenseGrowth').value) / 100;
+
+            // 计算年收入和支出
+            const annualSalary = monthlySalary * 12;
+            const annualIncome = annualSalary + yearEndBonus + otherIncome;
+            const annualExpense = monthlyExpense * 12 + yearExtraExpense;
+            const annualSavings = annualIncome - annualExpense;
+            const savingsRate = annualIncome > 0 ? (annualSavings / annualIncome * 100) : 0;
+
+            // Fire 目标资产 = 年支出 / 提款率
+            const targetAssets = annualExpense / withdrawRate;
+
+            // 逐年模拟
+            let assets = currentAssets;
+            let income = annualIncome;
+            let expense = annualExpense;
+            let years = 0;
+            const maxYears = 50;
+            const breakdown = [];
+
+            while (assets < targetAssets && years < maxYears) {
+                years++;
+                
+                // 资产增长 = 投资收益 + 新增储蓄
+                const investmentReturn = assets * returnRate;
+                const newSavings = income - expense;
+                assets = assets + investmentReturn + newSavings;
+                
+                // 收入和支出增长
+                income = income * (1 + incomeGrowth);
+                expense = expense * (1 + expenseGrowth);
+                
+                // 更新目标资产（因为支出在增长）
+                const currentTarget = expense / withdrawRate;
+                
+                breakdown.push({
+                    year: years,
+                    assets: assets,
+                    target: currentTarget,
+                    income: income,
+                    expense: expense,
+                    savings: newSavings,
+                    return: investmentReturn,
+                    fireAchieved: assets >= currentTarget
+                });
+            }
+
+            // 显示结果
+            document.getElementById('resultCard').style.display = 'block';
+            
+            if (years >= maxYears) {
+                document.getElementById('fireYears').textContent = '>50 年';
+                document.getElementById('fireYears').style.color = '#ff5252';
+            } else if (years === 0 && assets >= targetAssets) {
+                document.getElementById('fireYears').textContent = '已达成！';
+                document.getElementById('fireYears').style.color = '#4caf50';
+            } else {
+                document.getElementById('fireYears').textContent = years + ' 年';
+                document.getElementById('fireYears').style.color = '#e94560';
+            }
+
+            document.getElementById('savingsRate').textContent = savingsRate.toFixed(1) + '%';
+            document.getElementById('targetAssets').textContent = formatMoney(targetAssets);
+            document.getElementById('annualIncome').textContent = formatMoney(annualIncome);
+            document.getElementById('annualExpense').textContent = formatMoney(annualExpense);
+            document.getElementById('annualSavings').textContent = formatMoney(annualSavings);
+
+            // 逐年明细
+            let breakdownHTML = '';
+            breakdown.forEach(item => {
+                const fireClass = item.fireAchieved ? 'fire-achieved' : '';
+                const fireIcon = item.fireAchieved ? '🔥 ' : '';
+                breakdownHTML += `
+                    <div class="year-row ${fireClass}">
+                        <span>${fireIcon}第 ${item.year} 年</span>
+                        <span>资产: ${formatMoney(item.assets)} | 储蓄: ${formatMoney(item.savings)} | 投资收益: ${formatMoney(item.return)}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('yearBreakdown').innerHTML = breakdownHTML;
+
+            // 滚动到结果
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 页面加载时自动计算一次
+        window.onload = function() {
+            calculateFire();
+        };
+    </script>
+</body>
+</html>

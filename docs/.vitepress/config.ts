@@ -150,6 +150,7 @@ export default defineConfig({
       { text: '🚀 成长层', link: '/growth-layer/' },
       { text: '📅 每日复盘', link: '/daily-review/' },
       { text: '👁️ 观察', link: '/watchlist/' },
+      { text: '🔥 Fire', link: '/tools/fire-calculator' },
       { text: '📖 体系', link: '/framework/philosophy' },
     ],
 
