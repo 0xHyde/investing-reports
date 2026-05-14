@@ -661,8 +661,9 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
 
     if (!depleted) {
       depletionAges.push(lifeExpectancy.value + 1)
-      finalAssetsList.push(assets + (hasHouse ? houseValue : 0))
     }
+    // 所有模拟都记录最终资产（耗尽的记为0）
+    finalAssetsList.push(depleted ? 0 : (assets + (hasHouse ? houseValue : 0)))
 
     if (sim < 100) samplePaths.push(path)
   }
