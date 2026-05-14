@@ -30,7 +30,7 @@
       <div class="fire-card-title">💸 支出情况</div>
       <div class="fire-input-row">
         <div class="fire-input-group">
-          <label>月支出</label>
+          <label>月支出（不含房贷）</label>
           <input type="number" v-model.number="monthlyExpense" placeholder="8000">
         </div>
         <div class="fire-input-group">
@@ -43,7 +43,7 @@
     <!-- 买房计划 -->
     <div class="fire-card">
       <div class="fire-card-title">
-        🏠 买房计划
+        <span>🏠 买房计划</span>
         <label class="fire-toggle">
           <input type="checkbox" v-model="enableHouse">
           <span class="fire-toggle-slider"></span>
@@ -62,7 +62,7 @@
         </div>
         <div class="fire-input-row">
           <div class="fire-input-group">
-            <label>首付比例</label>
+            <label>首付比例（%）</label>
             <input type="number" v-model.number="downPaymentRatio" placeholder="30" min="0" max="100">
           </div>
           <div class="fire-input-group">
@@ -84,7 +84,7 @@
           <div class="fire-input-group" style="grid-column: 1 / -1;">
             <label class="fire-checkbox-label">
               <input type="checkbox" v-model="houseAsAsset">
-              房产价值计入 Fire 总资产（保守策略建议不勾选，只算金融资产）
+              房产价值计入 Fire 总资产（保守策略建议不勾选）
             </label>
           </div>
         </div>
@@ -102,7 +102,7 @@
         <input type="range" v-model.number="returnRate" min="1" max="15" step="0.5">
       </div>
       <div class="fire-slider-group">
-        <label><span>Fire 提款率（4%法则）</span><span>{{ withdrawRate }}%</span></label>
+        <label><span>Fire 提款率</span><span>{{ withdrawRate }}%</span></label>
         <input type="range" v-model.number="withdrawRate" min="2" max="6" step="0.5">
       </div>
       <div class="fire-slider-group">
@@ -139,11 +139,11 @@
         </div>
         <div class="fire-detail-item">
           <div class="fire-detail-value">{{ formatMoney(annualExpense) }}</div>
-          <div class="fire-detail-label">年支出</div>
+          <div class="fire-detail-label">年支出（当前）</div>
         </div>
         <div class="fire-detail-item">
           <div class="fire-detail-value">{{ formatMoney(annualSavings) }}</div>
-          <div class="fire-detail-label">年储蓄</div>
+          <div class="fire-detail-label">年储蓄（当前）</div>
         </div>
       </div>
 
@@ -151,6 +151,7 @@
       <div v-if="enableHouse && houseImpact" class="fire-house-impact">
         <div class="fire-divider"></div>
         <div class="fire-card-title">🏠 买房影响分析</div>
+        <div v-if="houseImpact.warning" class="fire-warning">{{ houseImpact.warning }}</div>
         <div class="fire-result-detail">
           <div class="fire-detail-item">
             <div class="fire-detail-value">{{ formatMoney(houseImpact.downPayment) }}</div>
@@ -161,12 +162,22 @@
             <div class="fire-detail-label">月供</div>
           </div>
           <div class="fire-detail-item">
-            <div class="fire-detail-value">{{ houseImpact.fireWithoutHouse }}年</div>
+            <div class="fire-detail-value">{{ houseImpact.mortgageRatio }}%</div>
+            <div class="fire-detail-label">月供占收入比</div>
+          </div>
+          <div class="fire-detail-item">
+            <div class="fire-detail-value">{{ houseImpact.loanYears }}年</div>
+            <div class="fire-detail-label">贷款期限</div>
+          </div>
+        </div>
+        <div class="fire-result-detail" style="margin-top: 12px;">
+          <div class="fire-detail-item">
+            <div class="fire-detail-value">{{ houseImpact.fireWithoutHouseText }}</div>
             <div class="fire-detail-label">不买房 Fire 时间</div>
           </div>
           <div class="fire-detail-item">
-            <div class="fire-detail-value" :style="{ color: houseImpact.delayYears > 0 ? '#ff5252' : '#4caf50' }">{{ houseImpact.delayYears > 0 ? '+' + houseImpact.delayYears : houseImpact.delayYears }}年</div>
-            <div class="fire-detail-label">买房延迟</div>
+            <div class="fire-detail-value" :style="{ color: houseImpact.delayColor }">{{ houseImpact.delayText }}</div>
+            <div class="fire-detail-label">买房影响</div>
           </div>
         </div>
       </div>
@@ -176,12 +187,12 @@
       <div class="fire-year-breakdown">
         <div v-for="item in breakdown" :key="item.year"
              class="fire-year-row"
-             :class="{ 'fire-achieved': item.fireAchieved, 'fire-house': item.houseEvent }">
+             :class="{ 'fire-achieved': item.fireAchieved, 'fire-house': item.houseEvent, 'fire-negative': item.financialAssets < 0 }">
           <span>{{ item.fireAchieved ? '🔥 ' : '' }}{{ item.houseEvent ? '🏠 ' : '' }}第 {{ item.year }} 年</span>
           <span>
-            资产: {{ formatMoney(item.assets) }}
-            <template v-if="item.houseEvent">| 首付: {{ formatMoney(item.houseDownPayment) }}</template>
-            <template v-else>| 储蓄: {{ formatMoney(item.savings) }} | 收益: {{ formatMoney(item.ret) }}</template>
+            资产 {{ formatMoney(item.assets) }}
+            <template v-if="item.houseEvent">| 首付 {{ formatMoney(item.houseDownPayment) }}</template>
+            <template v-else>| 储蓄 {{ formatMoney(item.savings) }} | 收益 {{ formatMoney(item.ret) }}</template>
           </span>
         </div>
       </div>
@@ -192,7 +203,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-// 基础参数
 const monthlySalary = ref(15000)
 const yearEndBonus = ref(30000)
 const otherIncome = ref(0)
@@ -204,7 +214,6 @@ const withdrawRate = ref(4)
 const incomeGrowth = ref(5)
 const expenseGrowth = ref(3)
 
-// 买房参数
 const enableHouse = ref(false)
 const houseYear = ref(5)
 const housePrice = ref(2000000)
@@ -214,7 +223,6 @@ const loanYears = ref(30)
 const houseAppreciation = ref(2)
 const houseAsAsset = ref(false)
 
-// 结果
 const showResult = ref(false)
 const fireYearsText = ref('-- 年')
 const fireYearsColor = ref('var(--vp-c-brand-1)')
@@ -229,10 +237,10 @@ const houseImpact = ref(null)
 function formatMoney(num) {
   if (num >= 100000000) return (num / 100000000).toFixed(2) + '亿'
   if (num >= 10000) return (num / 10000).toFixed(1) + '万'
+  if (num <= -10000) return (num / 10000).toFixed(1) + '万'
   return num.toFixed(0)
 }
 
-// 计算月供（等额本息）
 function calcMonthlyPayment(principal, annualRate, years) {
   const monthlyRate = annualRate / 100 / 12
   const months = years * 12
@@ -240,117 +248,177 @@ function calcMonthlyPayment(principal, annualRate, years) {
   return principal * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1)
 }
 
-function calculateFire() {
-  const ai = monthlySalary.value * 12 + yearEndBonus.value + otherIncome.value
-  const ae = monthlyExpense.value * 12 + yearExtraExpense.value
-  const as = ai - ae
-  const sr = ai > 0 ? (as / ai * 100) : 0
+function simulateFire(startAssets, startIncome, startBaseExpense, enableHouseFlag, houseYearVal, housePriceVal, downPaymentRatioVal, loanRateVal, loanYearsVal) {
+  const ai = startIncome
+  const baseExpense = startBaseExpense
+  const r = returnRate.value / 100
+  const wr = withdrawRate.value / 100
+  const ig = incomeGrowth.value / 100
+  const eg = expenseGrowth.value / 100
+  const ha = houseAppreciation.value / 100
 
-  // 买房相关计算
-  const downPayment = enableHouse.value ? housePrice.value * (downPaymentRatio.value / 100) : 0
-  const loanPrincipal = enableHouse.value ? housePrice.value - downPayment : 0
-  const monthlyMortgage = enableHouse.value ? calcMonthlyPayment(loanPrincipal, loanRate.value, loanYears.value) : 0
+  const downPayment = enableHouseFlag ? housePriceVal * (downPaymentRatioVal / 100) : 0
+  const loanPrincipal = enableHouseFlag ? housePriceVal - downPayment : 0
+  const monthlyMortgage = enableHouseFlag ? calcMonthlyPayment(loanPrincipal, loanRateVal, loanYearsVal) : 0
   const annualMortgage = monthlyMortgage * 12
 
-  let assets = currentAssets.value
+  let assets = startAssets
   let houseValue = 0
   let income = ai
-  let expense = ae
+  let baseExp = baseExpense
+  let mortgage = 0
+  let mortgageYearsPaid = 0
   let years = 0
   const maxYears = 50
   const bd = []
 
-  // 先算一个不买房的版本，用于对比
-  let assetsNoHouse = currentAssets.value
-  let incomeNoHouse = ai
-  let expenseNoHouse = ae
-  let yearsNoHouse = 0
-  while (assetsNoHouse < (expenseNoHouse / (withdrawRate.value / 100)) && yearsNoHouse < maxYears) {
-    yearsNoHouse++
-    assetsNoHouse = assetsNoHouse * (1 + returnRate.value / 100) + (incomeNoHouse - expenseNoHouse)
-    incomeNoHouse *= (1 + incomeGrowth.value / 100)
-    expenseNoHouse *= (1 + expenseGrowth.value / 100)
-  }
-
   while (years < maxYears) {
     years++
-    const investmentReturn = assets * (returnRate.value / 100)
-    const newSavings = income - expense
 
-    // 买房事件
+    // 买房事件（年初）
     let houseEvent = false
     let actualDownPayment = 0
-    if (enableHouse.value && years === houseYear.value) {
+    if (enableHouseFlag && years === houseYearVal) {
       houseEvent = true
-      actualDownPayment = Math.min(downPayment, assets) // 资产不够时只能付这么多
+      actualDownPayment = Math.min(downPayment, assets)
       assets -= actualDownPayment
-      houseValue = housePrice.value
-      expense += annualMortgage
+      houseValue = housePriceVal
+      mortgage = annualMortgage
+      mortgageYearsPaid = 0
     }
 
-    // 资产增长
+    // 贷款还清检查
+    if (mortgage > 0) {
+      mortgageYearsPaid++
+      if (mortgageYearsPaid > loanYearsVal) {
+        mortgage = 0
+      }
+    }
+
+    // 当年总支出 = 基础支出（随通胀）+ 月供（固定）
+    const totalExpense = baseExp + mortgage
+
+    // 资产增长 = 年初资产 × 收益率 + 年储蓄
+    const investmentReturn = assets * r
+    const newSavings = income - totalExpense
     assets = assets + investmentReturn + newSavings
 
     // 房产增值
-    if (enableHouse.value && houseValue > 0) {
-      houseValue *= (1 + houseAppreciation.value / 100)
+    if (houseValue > 0) {
+      houseValue *= (1 + ha)
     }
 
-    // 收入和支出增长
-    income = income * (1 + incomeGrowth.value / 100)
-    expense = expense * (1 + expenseGrowth.value / 100)
+    // 下一年参数更新
+    income = income * (1 + ig)
+    baseExp = baseExp * (1 + eg)  // 只有基础支出随通胀增长
 
-    // Fire 目标资产（基于当前支出）
-    const currentTarget = expense / (withdrawRate.value / 100)
-
-    // 计算总资产（金融资产 + 房产）
-    const totalAssets = assets + (houseAsAsset.value ? houseValue : 0)
+    // Fire 判断
+    const currentTarget = totalExpense / wr
+    const totalAssets = assets + (enableHouseFlag && houseAsAsset.value ? houseValue : 0)
 
     bd.push({
       year: years,
       assets: totalAssets,
       financialAssets: assets,
-      houseValue: houseValue,
+      houseValue,
       target: currentTarget,
       income,
-      expense,
+      expense: totalExpense,
       savings: newSavings,
       ret: investmentReturn,
       fireAchieved: totalAssets >= currentTarget,
       houseEvent,
-      houseDownPayment: actualDownPayment,
-      monthlyMortgage: houseEvent ? monthlyMortgage : 0
+      houseDownPayment: actualDownPayment
     })
 
     if (totalAssets >= currentTarget) break
   }
 
+  return { years, breakdown: bd, monthlyMortgage, downPayment }
+}
+
+function calculateFire() {
+  const ai = monthlySalary.value * 12 + yearEndBonus.value + otherIncome.value
+  const baseExpense = monthlyExpense.value * 12 + yearExtraExpense.value
+  const as = ai - baseExpense
+  const sr = ai > 0 ? ((as / ai) * 100) : 0
+
+  // 不买房版本
+  const noHouse = simulateFire(
+    currentAssets.value, ai, baseExpense,
+    false, 0, 0, 0, 0, 0
+  )
+
+  // 买房版本
+  const withHouse = enableHouse.value
+    ? simulateFire(
+        currentAssets.value, ai, baseExpense,
+        true, houseYear.value, housePrice.value,
+        downPaymentRatio.value, loanRate.value, loanYears.value
+      )
+    : null
+
+  const result = withHouse || noHouse
+
   showResult.value = true
   annualIncome.value = ai
-  annualExpense.value = ae
+  annualExpense.value = baseExpense
   annualSavings.value = as
   savingsRate.value = sr
-  targetAssets.value = expense / (withdrawRate.value / 100)
-  breakdown.value = bd
+  targetAssets.value = baseExpense / (withdrawRate.value / 100)
+  breakdown.value = result.breakdown
 
-  if (years >= maxYears) {
+  const finalYears = result.years
+  if (finalYears >= 50) {
     fireYearsText.value = '>50 年'
     fireYearsColor.value = '#ff5252'
-  } else if (years === 0 && currentAssets.value >= targetAssets.value) {
+  } else if (finalYears === 0 && currentAssets.value >= targetAssets.value) {
     fireYearsText.value = '已达成！'
     fireYearsColor.value = '#4caf50'
   } else {
-    fireYearsText.value = years + ' 年'
+    fireYearsText.value = finalYears + ' 年'
     fireYearsColor.value = 'var(--vp-c-brand-1)'
   }
 
-  // 买房影响
-  if (enableHouse.value) {
+  // 买房影响分析
+  if (enableHouse.value && withHouse) {
+    const monthlyMortgage = withHouse.monthlyMortgage
+    const mortgageRatio = ai > 0 ? ((monthlyMortgage * 12) / ai * 100) : 0
+    const noHouseYears = noHouse.years
+    const withHouseYears = withHouse.years
+
+    let delayText, delayColor
+    if (noHouseYears >= 50 && withHouseYears >= 50) {
+      delayText = '均无法达成'
+      delayColor = '#ff9800'
+    } else if (noHouseYears >= 50) {
+      delayText = '不买房也>50年'
+      delayColor = '#ff9800'
+    } else if (withHouseYears >= 50) {
+      delayText = '买房后>50年'
+      delayColor = '#ff5252'
+    } else {
+      const delay = withHouseYears - noHouseYears
+      delayText = (delay > 0 ? '+' : '') + delay + '年'
+      delayColor = delay > 0 ? '#ff5252' : '#4caf50'
+    }
+
+    let warning = ''
+    if (mortgageRatio > 50) {
+      warning = '⚠️ 月供占收入比超过50%，财务风险较高'
+    } else if (mortgageRatio > 40) {
+      warning = '⚡ 月供占收入比超过40%，注意现金流压力'
+    }
+
     houseImpact.value = {
-      downPayment,
+      downPayment: withHouse.downPayment,
       monthlyMortgage,
-      fireWithoutHouse: yearsNoHouse >= maxYears ? '>50' : yearsNoHouse,
-      delayYears: years - yearsNoHouse
+      mortgageRatio: mortgageRatio.toFixed(1),
+      loanYears: loanYears.value,
+      fireWithoutHouseText: noHouseYears >= 50 ? '>50年' : noHouseYears + '年',
+      delayText,
+      delayColor,
+      warning
     }
   } else {
     houseImpact.value = null
@@ -393,8 +461,8 @@ onMounted(() => {
 .fire-year-row:nth-child(odd) { background: var(--vp-c-bg); }
 .fire-year-row.fire-achieved { background: rgba(76,175,80,0.12); color: #4caf50; font-weight: 600; }
 .fire-year-row.fire-house { background: rgba(255,152,0,0.1); }
+.fire-year-row.fire-negative { color: #ff5252; }
 
-/* Toggle Switch */
 .fire-toggle { position: relative; display: inline-block; width: 48px; height: 26px; }
 .fire-toggle input { opacity: 0; width: 0; height: 0; }
 .fire-toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--vp-c-divider); transition: .3s; border-radius: 26px; }
@@ -406,4 +474,5 @@ onMounted(() => {
 .fire-checkbox-label { display: flex !important; align-items: center; gap: 8px; font-size: 13px !important; cursor: pointer; }
 .fire-checkbox-label input { width: auto !important; }
 .fire-house-impact { margin-top: 16px; }
+.fire-warning { background: rgba(255,152,0,0.1); border: 1px solid rgba(255,152,0,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #ff9800; }
 </style>
