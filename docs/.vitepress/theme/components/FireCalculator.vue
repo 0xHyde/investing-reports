@@ -19,8 +19,18 @@
           <input type="number" v-model.number="otherIncome" placeholder="0">
         </div>
         <div class="fire-input-group">
+          <label>当前已有被动收入/年</label>
+          <input type="number" v-model.number="passiveIncome" placeholder="0">
+        </div>
+      </div>
+      <div class="fire-input-row">
+        <div class="fire-input-group">
           <label>当前已有资产</label>
           <input type="number" v-model.number="currentAssets" placeholder="100000">
+        </div>
+        <div class="fire-input-group">
+          <label>当前年龄</label>
+          <input type="number" v-model.number="currentAge" placeholder="30" min="18" max="80">
         </div>
       </div>
     </div>
@@ -37,6 +47,19 @@
           <label>年额外支出</label>
           <input type="number" v-model.number="yearExtraExpense" placeholder="20000">
         </div>
+      </div>
+      <div class="fire-input-row">
+        <div class="fire-input-group">
+          <label>弹性支出占比（%）</label>
+          <input type="number" v-model.number="flexibleRatio" placeholder="30" min="0" max="100">
+        </div>
+        <div class="fire-input-group">
+          <label>熊市弹性压缩（%）</label>
+          <input type="number" v-model.number="flexibleCut" placeholder="50" min="0" max="100">
+        </div>
+      </div>
+      <div class="fire-hint" style="text-align: left; font-size: 12px; padding: 0;">
+        💡 弹性支出 = 可压缩的非必需开支（旅游、娱乐等）。熊市时自动按设定比例压缩。
       </div>
     </div>
 
@@ -98,8 +121,12 @@
     <div class="fire-card">
       <div class="fire-card-title">📈 投资参数</div>
       <div class="fire-slider-group">
-        <label><span>年化投资收益率</span><span>{{ returnRate }}%</span></label>
+        <label><span>年化投资收益率（工作期）</span><span>{{ returnRate }}%</span></label>
         <input type="range" v-model.number="returnRate" min="1" max="15" step="0.5">
+      </div>
+      <div class="fire-slider-group">
+        <label><span>退休期收益率调整</span><span>{{ retirementReturnAdj >= 0 ? '+' : '' }}{{ retirementReturnAdj }}%</span></label>
+        <input type="range" v-model.number="retirementReturnAdj" min="-5" max="0" step="0.5">
       </div>
       <div class="fire-slider-group">
         <label><span>Fire 提款率</span><span>{{ withdrawRate }}%</span></label>
@@ -115,7 +142,33 @@
       </div>
     </div>
 
-    <!-- Fire 后压力测试 -->
+    <!-- 社保养老金 -->
+    <div class="fire-card">
+      <div class="fire-card-title">
+        <span>🏛️ 社保养老金</span>
+        <label class="fire-toggle">
+          <input type="checkbox" v-model="enablePension">
+          <span class="fire-toggle-slider"></span>
+        </label>
+      </div>
+      <div v-if="enablePension">
+        <div class="fire-input-row">
+          <div class="fire-input-group">
+            <label>养老金开始年龄</label>
+            <input type="number" v-model.number="pensionAge" placeholder="60" min="50" max="75">
+          </div>
+          <div class="fire-input-group">
+            <label>预估月养老金</label>
+            <input type="number" v-model.number="pensionMonthly" placeholder="3000">
+          </div>
+        </div>
+      </div>
+      <div v-else class="fire-hint">
+        关闭社保养老金，按无养老金计算
+      </div>
+    </div>
+
+    <!-- 压力测试 -->
     <div class="fire-card">
       <div class="fire-card-title">
         <span>🛡️ Fire 后压力测试</span>
@@ -127,23 +180,19 @@
       <div v-if="enableStressTest">
         <div class="fire-input-row">
           <div class="fire-input-group">
-            <label>当前年龄</label>
-            <input type="number" v-model.number="currentAge" placeholder="30" min="18" max="80">
-          </div>
-          <div class="fire-input-group">
             <label>预期寿命</label>
             <input type="number" v-model.number="lifeExpectancy" placeholder="85" min="60" max="120">
           </div>
-        </div>
-        <div class="fire-input-row">
           <div class="fire-input-group">
             <label>风险承受度</label>
             <select v-model="riskProfile" class="fire-select">
-              <option value="conservative">保守（波动小，收益低）</option>
-              <option value="balanced">均衡（默认）</option>
-              <option value="aggressive">激进（波动大，收益高）</option>
+              <option value="conservative">保守（5%收益，8%波动）</option>
+              <option value="balanced">均衡（7%收益，15%波动）</option>
+              <option value="aggressive">激进（9%收益，22%波动）</option>
             </select>
           </div>
+        </div>
+        <div class="fire-input-row">
           <div class="fire-input-group">
             <label>模拟次数</label>
             <select v-model.number="simulationCount" class="fire-select">
@@ -152,23 +201,17 @@
               <option :value="2000">2000次（精确）</option>
             </select>
           </div>
-        </div>
-        <div class="fire-input-row">
-          <div class="fire-input-group">
-            <label>大额支出概率（%/年）</label>
-            <input type="number" v-model.number="majorExpenseProb" placeholder="5" min="0" max="50" step="1">
-          </div>
           <div class="fire-input-group">
             <label>大额支出金额</label>
             <input type="number" v-model.number="majorExpenseAmount" placeholder="200000" step="10000">
           </div>
         </div>
         <div class="fire-hint" style="margin-top: 8px; text-align: left; font-size: 12px;">
-          💡 压力测试用蒙特卡洛模拟：每年收益率按正态分布随机波动，随机触发大额支出，计算资产耗尽概率
+          💡 大额支出按年龄分层：30-50岁 2%/年，50-70岁 5%/年，70+岁 10%/年。模拟医疗/意外等支出。
         </div>
       </div>
       <div v-else class="fire-hint">
-        关闭压力测试，仅计算理想路径下的 Fire 时间
+        关闭压力测试，仅计算理想路径
       </div>
     </div>
 
@@ -178,7 +221,9 @@
     <div class="fire-card fire-result" v-if="showResult">
       <div class="fire-card-title">🎯 Fire 目标分析</div>
       <div class="fire-result-number" :style="{ color: fireYearsColor }">{{ fireYearsText }}</div>
-      <div class="fire-result-label">预计达到财务自由</div>
+      <div class="fire-result-label">
+        {{ fireAge ? `预计 ${fireAge} 岁达成 (${fireYears}年后)` : '预计达到财务自由' }}
+      </div>
 
       <div class="fire-savings-rate">
         <div class="fire-rate">{{ savingsRate.toFixed(1) }}%</div>
@@ -187,20 +232,20 @@
 
       <div class="fire-result-detail">
         <div class="fire-detail-item">
-          <div class="fire-detail-value">{{ formatMoney(targetAssets) }}</div>
-          <div class="fire-detail-label">Fire 目标资产</div>
+          <div class="fire-detail-value">{{ formatMoney(fireTarget) }}</div>
+          <div class="fire-detail-label">Fire 目标资产<br><small>（达成当年）</small></div>
+        </div>
+        <div class="fire-detail-item">
+          <div class="fire-detail-value">{{ formatMoney(fireAssets) }}</div>
+          <div class="fire-detail-label">Fire 时总资产</div>
         </div>
         <div class="fire-detail-item">
           <div class="fire-detail-value">{{ formatMoney(annualIncome) }}</div>
-          <div class="fire-detail-label">年收入</div>
+          <div class="fire-detail-label">当前年收入</div>
         </div>
         <div class="fire-detail-item">
           <div class="fire-detail-value">{{ formatMoney(annualExpense) }}</div>
-          <div class="fire-detail-label">年支出（当前）</div>
-        </div>
-        <div class="fire-detail-item">
-          <div class="fire-detail-value">{{ formatMoney(annualSavings) }}</div>
-          <div class="fire-detail-label">年储蓄（当前）</div>
+          <div class="fire-detail-label">当前年支出</div>
         </div>
       </div>
 
@@ -242,7 +287,7 @@
       <!-- Fire 后压力测试结果 -->
       <div v-if="enableStressTest && stressResult" class="fire-stress-result">
         <div class="fire-divider"></div>
-        <div class="fire-card-title">🛡️ Fire 后压力测试</div>
+        <div class="fire-card-title">🛡️ Fire 后压力测试（{{ simulationCount }}次模拟）</div>
         
         <div class="fire-stress-summary">
           <div class="fire-stress-item">
@@ -253,14 +298,14 @@
           </div>
           <div class="fire-stress-item">
             <div class="fire-stress-value">{{ stressResult.medianDepletionAge }}岁</div>
-            <div class="fire-stress-label">资产耗尽中位数年龄<br><small>（50%概率在此之前耗尽）</small></div>
+            <div class="fire-stress-label">耗尽中位数年龄<br><small>（50%概率在此之前耗尽）</small></div>
           </div>
           <div class="fire-stress-item">
-            <div class="fire-stress-value" style="color: #ff5252;">{{ stressResult.worstCaseAge }}岁</div>
+            <div class="fire-stress-value" style="color: #ff5252;">{{ stressResult.worstAge }}岁</div>
             <div class="fire-stress-label">最坏情况耗尽年龄<br><small>（95%分位，仅5%更差）</small></div>
           </div>
           <div class="fire-stress-item">
-            <div class="fire-stress-value">{{ stressResult.expectedLegacy > 0 ? formatMoney(stressResult.expectedLegacy) : '已耗尽' }}</div>
+            <div class="fire-stress-value">{{ stressResult.medianLegacy > 0 ? formatMoney(stressResult.medianLegacy) : '已耗尽' }}</div>
             <div class="fire-stress-label">预期遗产（中位数）<br><small>（{{ lifeExpectancy }}岁时的剩余资产）</small></div>
           </div>
         </div>
@@ -269,7 +314,7 @@
           <div class="fire-card-title" style="margin-top: 16px; font-size: 14px;">📊 情景分析</div>
           <div class="fire-scenario-row fire-scenario-header">
             <span>情景</span>
-            <span>资产耗尽年龄</span>
+            <span>耗尽年龄</span>
             <span>说明</span>
           </div>
           <div v-for="s in stressResult.scenarios" :key="s.name" class="fire-scenario-row" :class="{ 'fire-scenario-bad': s.depletionAge < lifeExpectancy }">
@@ -283,7 +328,7 @@
           <canvas id="stressChart"></canvas>
         </div>
         <div class="fire-hint" style="font-size: 11px; margin-top: 4px;">
-          上图：蒙特卡洛模拟 {{ simulationCount }} 次的路径分布。浅蓝区域为 10%-90% 分位，深蓝线为中位数，红线为 Fire 目标线。
+          上图：蒙特卡洛模拟 {{ simulationCount }} 次的路径分布。浅蓝区域为 10%-90% 分位，深蓝线为中位数。
         </div>
       </div>
 
@@ -299,7 +344,7 @@
         <div v-for="item in breakdown" :key="item.year"
              class="fire-year-row"
              :class="{ 'fire-achieved': item.fireAchieved, 'fire-house': item.houseEvent, 'fire-negative': item.financialAssets < 0 }">
-          <span>{{ item.fireAchieved ? '🔥 ' : '' }}{{ item.houseEvent ? '🏠 ' : '' }}第 {{ item.year }} 年</span>
+          <span>{{ item.fireAchieved ? '🔥 ' : '' }}{{ item.houseEvent ? '🏠 ' : '' }}第 {{ item.year }} 年 ({{ item.age }}岁)</span>
           <span>
             资产 {{ formatMoney(item.assets) }}
             <template v-if="item.houseEvent">| 首付 {{ formatMoney(item.houseDownPayment) }}</template>
@@ -332,14 +377,19 @@ function isDarkMode() {
   return document.documentElement.classList.contains('dark')
 }
 
-// 基础参数
+// ========== 基础参数 ==========
 const monthlySalary = ref(15000)
 const yearEndBonus = ref(30000)
 const otherIncome = ref(0)
+const passiveIncome = ref(0)
 const currentAssets = ref(100000)
+const currentAge = ref(30)
 const monthlyExpense = ref(8000)
 const yearExtraExpense = ref(20000)
+const flexibleRatio = ref(30)
+const flexibleCut = ref(50)
 const returnRate = ref(7)
+const retirementReturnAdj = ref(-2)
 const withdrawRate = ref(4)
 const incomeGrowth = ref(5)
 const expenseGrowth = ref(3)
@@ -354,24 +404,29 @@ const loanYears = ref(30)
 const houseAppreciation = ref(2)
 const houseAsAsset = ref(false)
 
+// 社保参数
+const enablePension = ref(false)
+const pensionAge = ref(60)
+const pensionMonthly = ref(3000)
+
 // 压力测试参数
 const enableStressTest = ref(false)
-const currentAge = ref(30)
 const lifeExpectancy = ref(85)
 const riskProfile = ref('balanced')
 const simulationCount = ref(1000)
-const majorExpenseProb = ref(5)
 const majorExpenseAmount = ref(200000)
 
 // 结果
 const showResult = ref(false)
 const fireYearsText = ref('-- 年')
 const fireYearsColor = ref('var(--vp-c-brand-1)')
+const fireAge = ref(null)
+const fireYears = ref(0)
 const savingsRate = ref(0)
-const targetAssets = ref(0)
+const fireTarget = ref(0)
+const fireAssets = ref(0)
 const annualIncome = ref(0)
 const annualExpense = ref(0)
-const annualSavings = ref(0)
 const breakdown = ref([])
 const houseImpact = ref(null)
 const stressResult = ref(null)
@@ -390,7 +445,6 @@ function calcMonthlyPayment(principal, annualRate, years) {
   return principal * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1)
 }
 
-// 根据风险承受度获取波动参数
 function getRiskParams() {
   const profiles = {
     conservative: { meanReturn: 0.05, stdDev: 0.08 },
@@ -400,7 +454,6 @@ function getRiskParams() {
   return profiles[riskProfile.value] || profiles.balanced
 }
 
-// Box-Muller 正态分布随机数
 function randn() {
   let u = 0, v = 0
   while (u === 0) u = Math.random()
@@ -408,14 +461,23 @@ function randn() {
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
 }
 
-function simulateFire(startAssets, startIncome, startBaseExpense, enableHouseFlag, houseYearVal, housePriceVal, downPaymentRatioVal, loanRateVal, loanYearsVal) {
-  const ai = startIncome
-  const baseExpense = startBaseExpense
+function getMajorExpenseProb(age) {
+  if (age < 50) return 0.02
+  if (age < 70) return 0.05
+  return 0.10
+}
+
+// ========== 工作期模拟 ==========
+function simulateWorkPhase(
+  startAssets, startIncome, startExpense,
+  enableHouseFlag, houseYearVal, housePriceVal, downPaymentRatioVal, loanRateVal, loanYearsVal
+) {
   const r = returnRate.value / 100
   const wr = withdrawRate.value / 100
   const ig = incomeGrowth.value / 100
   const eg = expenseGrowth.value / 100
   const ha = houseAppreciation.value / 100
+  const pi = passiveIncome.value
 
   const downPayment = enableHouseFlag ? housePriceVal * (downPaymentRatioVal / 100) : 0
   const loanPrincipal = enableHouseFlag ? housePriceVal - downPayment : 0
@@ -424,17 +486,20 @@ function simulateFire(startAssets, startIncome, startBaseExpense, enableHouseFla
 
   let assets = startAssets
   let houseValue = 0
-  let income = ai
-  let baseExp = baseExpense
   let mortgage = 0
   let mortgageYearsPaid = 0
+  let income = startIncome
+  let expense = startExpense
   let years = 0
   const maxYears = 50
   const bd = []
+  let achieved = false
 
   while (years < maxYears) {
     years++
+    const age = currentAge.value + years - 1
 
+    // 买房事件（年初）
     let houseEvent = false
     let actualDownPayment = 0
     if (enableHouseFlag && years === houseYearVal) {
@@ -446,184 +511,252 @@ function simulateFire(startAssets, startIncome, startBaseExpense, enableHouseFla
       mortgageYearsPaid = 0
     }
 
+    // 贷款还清
     if (mortgage > 0) {
       mortgageYearsPaid++
       if (mortgageYearsPaid > loanYearsVal) mortgage = 0
     }
 
-    const totalExpense = baseExp + mortgage
-    const investmentReturn = assets * r
-    const newSavings = income - totalExpense
-    assets = assets + investmentReturn + newSavings
+    // 总支出 = 基础支出 + 月供
+    const totalExpense = expense + mortgage
 
+    // 总收入 = 主动收入 + 被动收入
+    const totalIncome = income + pi
+
+    // 储蓄
+    const savings = totalIncome - totalExpense
+
+    // 资产增长
+    const investmentReturn = assets * r
+    assets = assets + investmentReturn + savings
+
+    // 房产增值
     if (houseValue > 0) houseValue *= (1 + ha)
 
-    income = income * (1 + ig)
-    baseExp = baseExp * (1 + eg)
-
-    const currentTarget = totalExpense / wr
+    // Fire 判断（关键修复：用当年支出算目标）
     const totalAssets = assets + (enableHouseFlag && houseAsAsset.value ? houseValue : 0)
+    const adjustedTarget = (totalExpense - pi) / wr
+    const fireAchieved = totalAssets >= adjustedTarget
 
     bd.push({
       year: years,
+      age,
       assets: totalAssets,
       financialAssets: assets,
       houseValue,
-      target: currentTarget,
-      income,
+      income: totalIncome,
       expense: totalExpense,
-      savings: newSavings,
+      savings,
       ret: investmentReturn,
-      fireAchieved: totalAssets >= currentTarget,
+      target: adjustedTarget,
+      fireAchieved,
       houseEvent,
-      houseDownPayment: actualDownPayment
+      houseDownPayment: actualDownPayment,
     })
 
-    if (totalAssets >= currentTarget) break
+    if (fireAchieved) {
+      achieved = true
+      break
+    }
+
+    // 下年参数更新
+    income = income * (1 + ig)
+    expense = expense * (1 + eg)
   }
 
-  return { years, breakdown: bd, monthlyMortgage, downPayment }
+  return {
+    years: achieved ? years : null,
+    breakdown: bd,
+    monthlyMortgage,
+    downPayment,
+    fireAssets: achieved ? assets : 0,
+    fireHouseValue: achieved ? houseValue : 0,
+    fireExpense: achieved ? expense : 0,
+    fireMortgage: achieved ? mortgage : 0,
+    fireMortgageYearsPaid: achieved ? mortgageYearsPaid : 0,
+  }
 }
 
-// Fire 后蒙特卡洛模拟
-function simulateRetirement(fireAssets, fireExpense, fireYearsToReach) {
+// ========== 退休期蒙特卡洛模拟 ==========
+function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge) {
   const risk = getRiskParams()
-  const simulations = simulationCount.value
-  const maxRetirementYears = lifeExpectancy.value - currentAge.value - fireYearsToReach
-  const meProb = majorExpenseProb.value / 100
+  const sims = simulationCount.value
+  const maxYears = lifeExpectancy.value - fireAge + 1
   const meAmount = majorExpenseAmount.value
+  const fr = flexibleRatio.value / 100
+  const fc = flexibleCut.value / 100
+  const pi = passiveIncome.value
+  const pa = pensionAge.value
+  const pm = pensionMonthly.value
+  const eg = expenseGrowth.value / 100
+  const rr = retirementReturnAdj.value / 100
+  const ha = houseAppreciation.value / 100
+  const hasHouse = enableHouse.value && houseAsAsset.value
 
-  const paths = []
   const depletionAges = []
+  const finalAssetsList = []
+  const samplePaths = []
 
-  for (let sim = 0; sim < simulations; sim++) {
+  for (let sim = 0; sim < sims; sim++) {
     let assets = fireAssets
     let expense = fireExpense
-    let path = [assets]
+    let mortgage = fireMortgage
+    let mortgageYearsPaid = fireMortgageYearsPaid
+    let houseValue = hasHouse ? fireAssets * 0 : 0 // 简化：退休期不单独追踪房产
+    const path = [assets]
     let depleted = false
 
-    for (let year = 1; year <= maxRetirementYears; year++) {
-      // 随机收益率（正态分布）
-      const randomReturn = risk.meanReturn + risk.stdDev * randn()
-      
-      // 随机大额支出
-      let extraExpense = 0
-      if (Math.random() < meProb) {
-        extraExpense = meAmount
+    for (let year = 1; year <= maxYears; year++) {
+      const age = fireAge + year - 1
+
+      // 贷款还清
+      if (mortgage > 0) {
+        mortgageYearsPaid++
+        if (mortgageYearsPaid > loanYears.value) mortgage = 0
       }
 
-      // 当年提款 = 年支出 + 大额支出
-      const withdrawal = expense + extraExpense
-      
-      // 资产变化 = 年初资产 × (1 + 收益率) - 提款
+      // 随机收益率
+      const randomReturn = risk.meanReturn + rr + risk.stdDev * randn()
+
+      // 被动收入
+      const pension = age >= pa ? pm * 12 : 0
+      const totalPassive = pi + pension
+
+      // 支出增长
+      expense = expense * (1 + eg)
+
+      // 大额支出（年龄分层）
+      if (Math.random() < getMajorExpenseProb(age)) {
+        expense += meAmount
+      }
+
+      // 熊市压缩弹性支出
+      if (randomReturn < -0.10) {
+        const flexible = expense * fr
+        expense -= flexible * fc
+      }
+
+      const totalExpense = expense + mortgage
+
+      // 资产提取
+      const withdrawal = Math.max(0, totalExpense - totalPassive)
+
+      // 资产变化
       assets = assets * (1 + randomReturn) - withdrawal
-      
-      // 支出随通胀增长
-      expense = expense * (1 + expenseGrowth.value / 100)
 
       path.push(assets)
 
       if (assets <= 0) {
+        depletionAges.push(age)
         depleted = true
-        depletionAges.push(currentAge.value + fireYearsToReach + year)
         break
       }
     }
 
     if (!depleted) {
-      depletionAges.push(lifeExpectancy.value + 1) // 标记为未耗尽
+      depletionAges.push(lifeExpectancy.value + 1)
+      finalAssetsList.push(assets)
     }
 
-    // 只保存部分路径用于图表（避免内存爆炸）
-    if (sim < 100) {
-      paths.push(path)
-    }
+    if (sim < 100) samplePaths.push(path)
   }
 
-  // 统计分析
-  const perpetualCount = depletionAges.filter(a => a > lifeExpectancy.value).length
-  const perpetualProb = Math.round((perpetualCount / simulations) * 100)
-  
-  const sortedAges = depletionAges.filter(a => a <= lifeExpectancy.value).sort((a, b) => a - b)
-  const medianDepletionAge = sortedAges.length > 0 
-    ? sortedAges[Math.floor(sortedAges.length * 0.5)] 
-    : lifeExpectancy.value
-  const worstCaseAge = sortedAges.length > 0
-    ? sortedAges[Math.floor(sortedAges.length * 0.05)] || sortedAges[0]
-    : lifeExpectancy.value
+  // 统计
+  const perpetual = depletionAges.filter(a => a > lifeExpectancy.value).length
+  const perpetualProb = Math.round((perpetual / sims) * 100)
 
-  // 计算预期遗产（中位数）
-  const finalAssets = paths.map(p => p[p.length - 1]).filter(a => a > 0).sort((a, b) => a - b)
-  const expectedLegacy = finalAssets.length > 0 
-    ? finalAssets[Math.floor(finalAssets.length * 0.5)] 
-    : 0
+  const depleted = depletionAges.filter(a => a <= lifeExpectancy.value).sort((a, b) => a - b)
+  const medianDepletionAge = depleted.length > 0 ? depleted[Math.floor(depleted.length * 0.5)] : lifeExpectancy.value
+  const worstAge = depleted.length > 0 ? (depleted[Math.floor(depleted.length * 0.05)] || depleted[0]) : lifeExpectancy.value
+
+  const sortedFinal = finalAssetsList.sort((a, b) => a - b)
+  const medianLegacy = sortedFinal.length > 0 ? sortedFinal[Math.floor(sortedFinal.length * 0.5)] : 0
 
   // 情景分析
   const scenarios = [
     {
       name: '理想路径',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireYearsToReach, risk.meanReturn, 0),
-      desc: '每年固定获得 ' + (risk.meanReturn * 100).toFixed(1) + '% 收益，无大额支出'
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 0, 0),
+      desc: `每年固定 ${((risk.meanReturn + rr) * 100).toFixed(1)}% 收益，无大额支出`
     },
     {
       name: '温和熊市',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireYearsToReach, risk.meanReturn, 3),
-      desc: 'Fire后连续3年 -20% 收益，之后恢复正常'
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 3, 0),
+      desc: 'Fire后连续3年 -20%，之后恢复'
     },
     {
       name: '严重熊市',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireYearsToReach, risk.meanReturn, 5),
-      desc: 'Fire后连续5年 -20% 收益，之后恢复正常'
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 5, 0),
+      desc: 'Fire后连续5年 -20%，之后恢复'
     },
     {
       name: '通胀超预期',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireYearsToReach, risk.meanReturn, 0, 2),
-      desc: '支出年增长率比预期高 2%'
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 0, 2),
+      desc: '支出增长率比预期高 2%'
     }
   ]
 
   return {
     perpetualProb,
     medianDepletionAge,
-    worstCaseAge,
-    expectedLegacy,
-    paths,
-    scenarios
+    worstAge,
+    medianLegacy,
+    paths: samplePaths,
+    scenarios,
   }
 }
 
-// 确定性情景模拟（用于对比分析）
-function simulateDeterministic(fireAssets, fireExpense, fireYearsToReach, normalReturn, bearYears = 0, extraInflation = 0) {
+// 确定性情景模拟
+function simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, normalReturn, bearYears, extraInflation) {
   let assets = fireAssets
   let expense = fireExpense
-  const maxYears = lifeExpectancy.value - currentAge.value - fireYearsToReach
-  const r = normalReturn
+  let mortgage = fireMortgage
+  let mortgageYearsPaid = fireMortgageYearsPaid
+  const maxYears = lifeExpectancy.value - fireAge + 1
+  const pi = passiveIncome.value
+  const pa = pensionAge.value
+  const pm = pensionMonthly.value
   const eg = (expenseGrowth.value + extraInflation) / 100
 
   for (let year = 1; year <= maxYears; year++) {
-    const actualReturn = year <= bearYears ? -0.20 : r
-    assets = assets * (1 + actualReturn) - expense
-    expense = expense * (1 + eg)
-    if (assets <= 0) {
-      return currentAge.value + fireYearsToReach + year
+    const age = fireAge + year - 1
+
+    if (mortgage > 0) {
+      mortgageYearsPaid++
+      if (mortgageYearsPaid > loanYears.value) mortgage = 0
     }
+
+    const actualReturn = year <= bearYears ? -0.20 : normalReturn
+    const pension = age >= pa ? pm * 12 : 0
+    const totalPassive = pi + pension
+
+    expense = expense * (1 + eg)
+    const totalExpense = expense + mortgage
+    const withdrawal = Math.max(0, totalExpense - totalPassive)
+
+    assets = assets * (1 + actualReturn) - withdrawal
+
+    if (assets <= 0) return age
   }
   return lifeExpectancy.value + 1
 }
 
+// ========== 主计算 ==========
 function calculateFire() {
   const ai = monthlySalary.value * 12 + yearEndBonus.value + otherIncome.value
   const baseExpense = monthlyExpense.value * 12 + yearExtraExpense.value
   const as = ai - baseExpense
   const sr = ai > 0 ? ((as / ai) * 100) : 0
 
-  const noHouse = simulateFire(
+  // 不买房版本
+  const noHouse = simulateWorkPhase(
     currentAssets.value, ai, baseExpense,
     false, 0, 0, 0, 0, 0
   )
 
+  // 买房版本
   const withHouse = enableHouse.value
-    ? simulateFire(
+    ? simulateWorkPhase(
         currentAssets.value, ai, baseExpense,
         true, houseYear.value, housePrice.value,
         downPaymentRatio.value, loanRate.value, loanYears.value
@@ -631,25 +764,28 @@ function calculateFire() {
     : null
 
   const result = withHouse || noHouse
-  const fireYears = result.years
+  const achieved = result.years !== null
 
   showResult.value = true
   annualIncome.value = ai
   annualExpense.value = baseExpense
-  annualSavings.value = as
   savingsRate.value = sr
-  targetAssets.value = baseExpense / (withdrawRate.value / 100)
+  fireYears.value = achieved ? result.years : 0
+  fireAge.value = achieved ? currentAge.value + result.years : null
   breakdown.value = result.breakdown
 
-  if (fireYears >= 50) {
+  if (achieved) {
+    const lastEntry = result.breakdown[result.breakdown.length - 1]
+    fireTarget.value = lastEntry.target
+    fireAssets.value = lastEntry.assets
+
+    fireYearsText.value = result.years + ' 年'
+    fireYearsColor.value = 'var(--vp-c-brand-1)'
+  } else {
+    fireTarget.value = 0
+    fireAssets.value = 0
     fireYearsText.value = '>50 年'
     fireYearsColor.value = '#ff5252'
-  } else if (fireYears === 0 && currentAssets.value >= targetAssets.value) {
-    fireYearsText.value = '已达成！'
-    fireYearsColor.value = '#4caf50'
-  } else {
-    fireYearsText.value = fireYears + ' 年'
-    fireYearsColor.value = 'var(--vp-c-brand-1)'
   }
 
   // 买房影响
@@ -660,13 +796,13 @@ function calculateFire() {
     const withHouseYears = withHouse.years
 
     let delayText, delayColor
-    if (noHouseYears >= 50 && withHouseYears >= 50) {
+    if (!noHouseYears && !withHouseYears) {
       delayText = '均无法达成'
       delayColor = '#ff9800'
-    } else if (noHouseYears >= 50) {
+    } else if (!noHouseYears) {
       delayText = '不买房也>50年'
       delayColor = '#ff9800'
-    } else if (withHouseYears >= 50) {
+    } else if (!withHouseYears) {
       delayText = '买房后>50年'
       delayColor = '#ff5252'
     } else {
@@ -676,18 +812,15 @@ function calculateFire() {
     }
 
     let warning = ''
-    if (mortgageRatio > 50) {
-      warning = '⚠️ 月供占收入比超过50%，财务风险较高'
-    } else if (mortgageRatio > 40) {
-      warning = '⚡ 月供占收入比超过40%，注意现金流压力'
-    }
+    if (mortgageRatio > 50) warning = '⚠️ 月供占收入比超过50%，财务风险较高'
+    else if (mortgageRatio > 40) warning = '⚡ 月供占收入比超过40%，注意现金流压力'
 
     houseImpact.value = {
       downPayment: withHouse.downPayment,
       monthlyMortgage,
       mortgageRatio: mortgageRatio.toFixed(1),
       loanYears: loanYears.value,
-      fireWithoutHouseText: noHouseYears >= 50 ? '>50年' : noHouseYears + '年',
+      fireWithoutHouseText: noHouseYears ? noHouseYears + '年' : '>50年',
       delayText,
       delayColor,
       warning
@@ -697,11 +830,14 @@ function calculateFire() {
   }
 
   // Fire 后压力测试
-  if (enableStressTest.value && fireYears < 50) {
-    const fireData = result.breakdown[result.breakdown.length - 1]
-    const fireAssets = fireData.assets
-    const fireExpense = fireData.expense
-    stressResult.value = simulateRetirement(fireAssets, fireExpense, fireYears)
+  if (enableStressTest.value && achieved) {
+    stressResult.value = simulateRetirementMC(
+      result.fireAssets,
+      result.fireExpense,
+      result.fireMortgage,
+      result.fireMortgageYearsPaid,
+      currentAge.value + result.years
+    )
     renderStressChart(stressResult.value)
   } else {
     stressResult.value = null
@@ -710,6 +846,7 @@ function calculateFire() {
   renderChart(result.breakdown)
 }
 
+// ========== 图表渲染 ==========
 async function renderChart(data) {
   if (!data || data.length === 0) return
   try {
@@ -717,10 +854,9 @@ async function renderChart(data) {
     const dark = isDarkMode()
     const ctx = document.getElementById('fireChart')
     if (!ctx) return
-
     if (chartInstance) chartInstance.destroy()
 
-    const labels = data.map(d => '第' + d.year + '年')
+    const labels = data.map(d => `第${d.year}年`)
     const assetsData = data.map(d => d.assets)
     const targetData = data.map(d => d.target)
     const financialData = data.map(d => d.financialAssets)
@@ -753,22 +889,10 @@ async function renderChart(data) {
     ]
 
     if (enableHouse.value && houseAsAsset.value) {
-      datasets.push({
-        label: '金融资产',
-        data: financialData,
-        borderColor: '#4caf50',
-        fill: false,
-        tension: 0.3,
-        pointRadius: 2
-      })
-      datasets.push({
-        label: '房产价值',
-        data: houseValueData,
-        borderColor: '#ff9800',
-        fill: false,
-        tension: 0.3,
-        pointRadius: 2
-      })
+      datasets.push(
+        { label: '金融资产', data: financialData, borderColor: '#4caf50', fill: false, tension: 0.3, pointRadius: 2 },
+        { label: '房产价值', data: houseValueData, borderColor: '#ff9800', fill: false, tension: 0.3, pointRadius: 2 }
+      )
     }
 
     chartInstance = new Chart(ctx, {
@@ -794,18 +918,8 @@ async function renderChart(data) {
           }
         },
         scales: {
-          x: {
-            ticks: { color: textColor, font: { size: 11 }, maxTicksLimit: 12 },
-            grid: { color: gridColor }
-          },
-          y: {
-            ticks: {
-              color: textColor,
-              font: { size: 11 },
-              callback: function(value) { return formatMoney(value) }
-            },
-            grid: { color: gridColor }
-          }
+          x: { ticks: { color: textColor, font: { size: 11 }, maxTicksLimit: 12 }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor, font: { size: 11 }, callback: function(value) { return formatMoney(value) } }, grid: { color: gridColor } }
         }
       }
     })
@@ -821,14 +935,13 @@ async function renderStressChart(stressData) {
     const dark = isDarkMode()
     const ctx = document.getElementById('stressChart')
     if (!ctx) return
-
     if (stressChartInstance) stressChartInstance.destroy()
 
     const paths = stressData.paths
     const maxLen = Math.max(...paths.map(p => p.length))
     const labels = []
     for (let i = 0; i < maxLen; i++) {
-      labels.push((currentAge.value + breakdown.value.length - 1 + i) + '岁')
+      labels.push((currentAge.value + fireYears.value - 1 + i) + '岁')
     }
 
     const textColor = dark ? '#e0e0e0' : '#333'
@@ -850,52 +963,11 @@ async function renderStressChart(stressData) {
     }
 
     const datasets = [
-      {
-        label: '90%分位',
-        data: p90,
-        borderColor: 'rgba(100,108,255,0.2)',
-        backgroundColor: 'rgba(100,108,255,0.05)',
-        fill: '+1',
-        pointRadius: 0,
-        tension: 0.3
-      },
-      {
-        label: '75%分位',
-        data: p75,
-        borderColor: 'rgba(100,108,255,0.35)',
-        backgroundColor: 'rgba(100,108,255,0.08)',
-        fill: '+1',
-        pointRadius: 0,
-        tension: 0.3
-      },
-      {
-        label: '中位数',
-        data: p50,
-        borderColor: '#646cff',
-        backgroundColor: 'rgba(100,108,255,0.15)',
-        fill: '+1',
-        pointRadius: 2,
-        tension: 0.3,
-        borderWidth: 2
-      },
-      {
-        label: '25%分位',
-        data: p25,
-        borderColor: 'rgba(100,108,255,0.35)',
-        backgroundColor: 'rgba(100,108,255,0.08)',
-        fill: '+1',
-        pointRadius: 0,
-        tension: 0.3
-      },
-      {
-        label: '10%分位',
-        data: p10,
-        borderColor: 'rgba(100,108,255,0.2)',
-        backgroundColor: 'rgba(100,108,255,0.05)',
-        fill: false,
-        pointRadius: 0,
-        tension: 0.3
-      }
+      { label: '90%分位', data: p90, borderColor: 'rgba(100,108,255,0.2)', backgroundColor: 'rgba(100,108,255,0.05)', fill: '+1', pointRadius: 0, tension: 0.3 },
+      { label: '75%分位', data: p75, borderColor: 'rgba(100,108,255,0.35)', backgroundColor: 'rgba(100,108,255,0.08)', fill: '+1', pointRadius: 0, tension: 0.3 },
+      { label: '中位数', data: p50, borderColor: '#646cff', backgroundColor: 'rgba(100,108,255,0.15)', fill: '+1', pointRadius: 2, tension: 0.3, borderWidth: 2 },
+      { label: '25%分位', data: p25, borderColor: 'rgba(100,108,255,0.35)', backgroundColor: 'rgba(100,108,255,0.08)', fill: '+1', pointRadius: 0, tension: 0.3 },
+      { label: '10%分位', data: p10, borderColor: 'rgba(100,108,255,0.2)', backgroundColor: 'rgba(100,108,255,0.05)', fill: false, pointRadius: 0, tension: 0.3 }
     ]
 
     stressChartInstance = new Chart(ctx, {
@@ -921,18 +993,8 @@ async function renderStressChart(stressData) {
           }
         },
         scales: {
-          x: {
-            ticks: { color: textColor, font: { size: 10 }, maxTicksLimit: 10 },
-            grid: { color: gridColor }
-          },
-          y: {
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              callback: function(value) { return formatMoney(value) }
-            },
-            grid: { color: gridColor }
-          }
+          x: { ticks: { color: textColor, font: { size: 10 }, maxTicksLimit: 10 }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor, font: { size: 10 }, callback: function(value) { return formatMoney(value) } }, grid: { color: gridColor } }
         }
       }
     })
@@ -970,8 +1032,9 @@ onMounted(() => {
 .fire-savings-rate .fire-label { font-size: 14px; color: var(--vp-c-text-2); }
 .fire-result-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
 .fire-detail-item { background: var(--vp-c-bg); padding: 12px; border-radius: 10px; text-align: center; }
-.fire-detail-value { font-size: 20px; font-weight: 600; color: var(--vp-c-text-1); }
-.fire-detail-label { font-size: 12px; color: var(--vp-c-text-2); margin-top: 4px; }
+.fire-detail-value { font-size: 18px; font-weight: 600; color: var(--vp-c-text-1); }
+.fire-detail-label { font-size: 12px; color: var(--vp-c-text-2); margin-top: 4px; line-height: 1.4; }
+.fire-detail-label small { font-size: 11px; opacity: 0.7; }
 .fire-divider { height: 1px; background: var(--vp-c-divider); margin: 16px 0; }
 .fire-year-breakdown { max-height: 300px; overflow-y: auto; margin-top: 16px; }
 .fire-year-row { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 8px; margin-bottom: 4px; font-size: 13px; }
@@ -996,16 +1059,16 @@ onMounted(() => {
 .fire-house-impact { margin-top: 16px; }
 .fire-warning { background: rgba(255,152,0,0.1); border: 1px solid rgba(255,152,0,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #ff9800; }
 
-/* 压力测试样式 */
+/* 压力测试 */
 .fire-stress-result { margin-top: 16px; }
 .fire-stress-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
 .fire-stress-item { background: var(--vp-c-bg); padding: 16px 12px; border-radius: 12px; text-align: center; }
-.fire-stress-value { font-size: 28px; font-weight: 700; color: var(--vp-c-brand-1); }
+.fire-stress-value { font-size: 26px; font-weight: 700; color: var(--vp-c-brand-1); }
 .fire-stress-label { font-size: 12px; color: var(--vp-c-text-2); margin-top: 6px; line-height: 1.5; }
 .fire-stress-label small { font-size: 11px; opacity: 0.7; }
 
 .fire-scenarios { margin-top: 16px; }
-.fire-scenario-row { display: grid; grid-template-columns: 100px 120px 1fr; gap: 8px; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; font-size: 13px; align-items: center; }
+.fire-scenario-row { display: grid; grid-template-columns: 90px 130px 1fr; gap: 8px; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; font-size: 13px; align-items: center; }
 .fire-scenario-row:nth-child(odd) { background: var(--vp-c-bg); }
 .fire-scenario-header { font-weight: 600; color: var(--vp-c-text-2); font-size: 12px; }
 .fire-scenario-bad { background: rgba(255,82,82,0.05) !important; }
