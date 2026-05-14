@@ -203,11 +203,11 @@
           </div>
           <div class="fire-input-group">
             <label>大额支出金额</label>
-            <input type="number" v-model.number="majorExpenseAmount" placeholder="200000" step="10000">
+            <input type="number" v-model.number="majorExpenseAmount" placeholder="100000" step="10000">
           </div>
         </div>
         <div class="fire-hint" style="margin-top: 8px; text-align: left; font-size: 12px;">
-          💡 大额支出按年龄分层触发（30-50岁2%/年，50-70岁5%/年，70+岁10%/年）。触发后有3年冷却期。金额随通胀增长保持购买力。
+          💡 大额支出按年龄分层触发（30-50岁2%/年，50-70岁5%/年，70+岁10%/年）。触发后有3年冷却期。金额随通胀增长保持购买力。参考：有医保建议5-10万，无医保建议20-30万。
         </div>
       </div>
       <div v-else class="fire-hint">
