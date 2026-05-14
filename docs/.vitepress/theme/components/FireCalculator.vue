@@ -578,7 +578,7 @@ function simulateWorkPhase(
 }
 
 // ========== 退休期蒙特卡洛模拟 ==========
-function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge) {
+function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, fireHouseValue) {
   const risk = getRiskParams()
   const sims = simulationCount.value
   const maxYears = lifeExpectancy.value - fireAge + 1
@@ -602,8 +602,8 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
     let expense = fireExpense
     let mortgage = fireMortgage
     let mortgageYearsPaid = fireMortgageYearsPaid
-    let houseValue = hasHouse ? fireAssets * 0 : 0 // 简化：退休期不单独追踪房产
-    const path = [assets]
+    let houseValue = hasHouse ? fireHouseValue : 0
+    const path = [assets + houseValue]
     let depleted = false
 
     for (let year = 1; year <= maxYears; year++) {
@@ -644,9 +644,15 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
       // 资产变化
       assets = assets * (1 + randomReturn) - withdrawal
 
-      path.push(assets)
+      // 房产增值（退休期继续）
+      if (houseValue > 0) {
+        houseValue *= (1 + ha)
+      }
 
-      if (assets <= 0) {
+      const totalAssets = assets + (hasHouse ? houseValue : 0)
+      path.push(totalAssets)
+
+      if (totalAssets <= 0) {
         depletionAges.push(age)
         depleted = true
         break
@@ -655,7 +661,7 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
 
     if (!depleted) {
       depletionAges.push(lifeExpectancy.value + 1)
-      finalAssetsList.push(assets)
+      finalAssetsList.push(assets + (hasHouse ? houseValue : 0))
     }
 
     if (sim < 100) samplePaths.push(path)
@@ -676,22 +682,22 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
   const scenarios = [
     {
       name: '理想路径',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 0, 0),
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 0, 0, fireHouseValue),
       desc: `每年固定 ${((risk.meanReturn + rr) * 100).toFixed(1)}% 收益，无大额支出`
     },
     {
       name: '温和熊市',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 3, 0),
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 3, 0, fireHouseValue),
       desc: 'Fire后连续3年 -20%，之后恢复'
     },
     {
       name: '严重熊市',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 5, 0),
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 5, 0, fireHouseValue),
       desc: 'Fire后连续5年 -20%，之后恢复'
     },
     {
       name: '通胀超预期',
-      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 0, 2),
+      depletionAge: simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, risk.meanReturn + rr, 0, 2, fireHouseValue),
       desc: '支出增长率比预期高 2%'
     }
   ]
@@ -707,16 +713,18 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
 }
 
 // 确定性情景模拟
-function simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, normalReturn, bearYears, extraInflation) {
+function simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, normalReturn, bearYears, extraInflation, fireHouseValue) {
   let assets = fireAssets
   let expense = fireExpense
   let mortgage = fireMortgage
   let mortgageYearsPaid = fireMortgageYearsPaid
+  let houseValue = (enableHouse.value && houseAsAsset.value) ? fireHouseValue : 0
   const maxYears = lifeExpectancy.value - fireAge + 1
   const pi = passiveIncome.value
   const pa = pensionAge.value
   const pm = pensionMonthly.value
   const eg = (expenseGrowth.value + extraInflation) / 100
+  const ha = houseAppreciation.value / 100
 
   for (let year = 1; year <= maxYears; year++) {
     const age = fireAge + year - 1
@@ -736,7 +744,14 @@ function simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortga
 
     assets = assets * (1 + actualReturn) - withdrawal
 
-    if (assets <= 0) return age
+    // 房产增值
+    if (houseValue > 0) {
+      houseValue *= (1 + ha)
+    }
+
+    const totalAssets = assets + ((enableHouse.value && houseAsAsset.value) ? houseValue : 0)
+
+    if (totalAssets <= 0) return age
   }
   return lifeExpectancy.value + 1
 }
@@ -836,7 +851,8 @@ function calculateFire() {
       result.fireExpense,
       result.fireMortgage,
       result.fireMortgageYearsPaid,
-      currentAge.value + result.years
+      currentAge.value + result.years,
+      result.fireHouseValue
     )
     renderStressChart(stressResult.value)
   } else {
