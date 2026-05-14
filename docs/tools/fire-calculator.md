@@ -2,7 +2,7 @@
 
 计算你距离财务自由还有多远。输入你的收入、支出和投资参数，看看需要多少年可以实现财务独立。
 
-<iframe src="/investing-reports/tools/fire-calculator.html" width="100%" height="900" frameborder="0" style="border-radius: 12px; border: 1px solid var(--vp-c-divider);"></iframe>
+<FireCalculator />
 
 ---
 
