@@ -207,7 +207,7 @@
           </div>
         </div>
         <div class="fire-hint" style="margin-top: 8px; text-align: left; font-size: 12px;">
-          💡 大额支出按年龄分层：30-50岁 2%/年，50-70岁 5%/年，70+岁 10%/年。模拟医疗/意外等支出。
+          💡 大额支出按年龄分层触发（30-50岁2%/年，50-70岁5%/年，70+岁10%/年）。触发后有3年冷却期。金额随通胀增长保持购买力。
         </div>
       </div>
       <div v-else class="fire-hint">
@@ -603,6 +603,8 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
     let mortgage = fireMortgage
     let mortgageYearsPaid = fireMortgageYearsPaid
     let houseValue = hasHouse ? fireHouseValue : 0
+    let meAmountReal = meAmount  // 大额支出金额（随通胀增长）
+    let majorExpenseCooldown = 0  // 大额支出冷却期（年）
     const path = [assets + houseValue]
     let depleted = false
 
@@ -625,10 +627,16 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
       // 支出增长
       expense = expense * (1 + eg)
 
-      // 大额支出（年龄分层）
-      if (Math.random() < getMajorExpenseProb(age)) {
-        expense += meAmount
+      // 大额支出（年龄分层，有冷却期，金额随通胀增长）
+      if (majorExpenseCooldown > 0) {
+        majorExpenseCooldown--
+      } else if (Math.random() < getMajorExpenseProb(age)) {
+        expense += meAmountReal
+        majorExpenseCooldown = 3  // 触发后3年冷却
       }
+
+      // 大额支出金额随通胀增长（保持购买力）
+      meAmountReal = meAmountReal * (1 + eg)
 
       // 熊市压缩弹性支出
       if (randomReturn < -0.10) {
