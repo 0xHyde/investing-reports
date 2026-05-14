@@ -559,7 +559,7 @@ function simulateWorkPhase(
       break
     }
 
-    // 下年参数更新
+    // 下年参数更新（注意：这里expense增长，但返回时要用增长前的值）
     income = income * (1 + ig)
     expense = expense * (1 + eg)
   }
@@ -571,8 +571,9 @@ function simulateWorkPhase(
     downPayment,
     fireAssets: achieved ? assets : 0,
     fireHouseValue: achieved ? houseValue : 0,
-    fireExpense: achieved ? expense : 0,
-    fireMortgage: achieved ? mortgage : 0,
+    // 修复：返回Fire当年的总支出，不是增长后的
+    fireExpense: achieved ? (bd[bd.length - 1].expense) : 0,
+    fireMortgage: achieved ? (bd[bd.length - 1].expense > expense ? mortgage : 0) : 0,
     fireMortgageYearsPaid: achieved ? mortgageYearsPaid : 0,
   }
 }
@@ -581,7 +582,7 @@ function simulateWorkPhase(
 function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgageYearsPaid, fireAge, fireHouseValue) {
   const risk = getRiskParams()
   const sims = simulationCount.value
-  const maxYears = lifeExpectancy.value - fireAge + 1
+  const maxYears = lifeExpectancy.value - fireAge  // 修复：去掉+1
   const meAmount = majorExpenseAmount.value
   const fr = flexibleRatio.value / 100
   const fc = flexibleCut.value / 100
@@ -624,7 +625,7 @@ function simulateRetirementMC(fireAssets, fireExpense, fireMortgage, fireMortgag
       const pension = age >= pa ? pm * 12 : 0
       const totalPassive = pi + pension
 
-      // 支出增长
+      // 支出增长（第一年就开始增长）
       expense = expense * (1 + eg)
 
       // 大额支出（年龄分层，有冷却期，金额随通胀增长）
@@ -728,7 +729,7 @@ function simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortga
   let mortgage = fireMortgage
   let mortgageYearsPaid = fireMortgageYearsPaid
   let houseValue = (enableHouse.value && houseAsAsset.value) ? fireHouseValue : 0
-  const maxYears = lifeExpectancy.value - fireAge + 1
+  const maxYears = lifeExpectancy.value - fireAge  // 修复：去掉+1
   const pi = passiveIncome.value
   const pa = pensionAge.value
   const pm = pensionMonthly.value
