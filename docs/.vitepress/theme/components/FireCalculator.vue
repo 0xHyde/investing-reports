@@ -183,7 +183,13 @@
       </div>
 
       <div class="fire-divider"></div>
-      <div class="fire-card-title">📊 逐年资产增长</div>
+      <div class="fire-card-title">📈 资产增长曲线</div>
+      <div class="fire-chart-container">
+        <canvas id="fireChart"></canvas>
+      </div>
+
+      <div class="fire-divider"></div>
+      <div class="fire-card-title">📊 逐年资产明细</div>
       <div class="fire-year-breakdown">
         <div v-for="item in breakdown" :key="item.year"
              class="fire-year-row"
@@ -202,6 +208,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+
+let chartInstance = null
+
+function loadChartJS() {
+  return new Promise((resolve, reject) => {
+    if (window.Chart) { resolve(window.Chart); return }
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js'
+    script.onload = () => resolve(window.Chart)
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
+
+function isDarkMode() {
+  return document.documentElement.classList.contains('dark')
+}
 
 const monthlySalary = ref(15000)
 const yearEndBonus = ref(30000)
@@ -423,6 +446,136 @@ function calculateFire() {
   } else {
     houseImpact.value = null
   }
+
+  // 渲染图表
+  renderChart(result.breakdown)
+}
+
+async function renderChart(data) {
+  if (!data || data.length === 0) return
+  try {
+    const Chart = await loadChartJS()
+    const dark = isDarkMode()
+    const ctx = document.getElementById('fireChart')
+    if (!ctx) return
+
+    if (chartInstance) {
+      chartInstance.destroy()
+    }
+
+    const labels = data.map(d => '第' + d.year + '年')
+    const assetsData = data.map(d => d.assets)
+    const targetData = data.map(d => d.target)
+    const financialData = data.map(d => d.financialAssets)
+    const houseValueData = data.map(d => d.houseValue)
+
+    const textColor = dark ? '#e0e0e0' : '#333'
+    const gridColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+
+    const datasets = [
+      {
+        label: '总资产',
+        data: assetsData,
+        borderColor: '#646cff',
+        backgroundColor: 'rgba(100,108,255,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6
+      },
+      {
+        label: 'Fire 目标线',
+        data: targetData,
+        borderColor: '#ff6b6b',
+        borderDash: [6, 4],
+        fill: false,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4
+      }
+    ]
+
+    // 如果启用了买房且房产计入资产，显示金融资产和房产价值
+    if (enableHouse.value && houseAsAsset.value) {
+      datasets.push({
+        label: '金融资产',
+        data: financialData,
+        borderColor: '#4caf50',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 2,
+        pointHoverRadius: 4
+      })
+      datasets.push({
+        label: '房产价值',
+        data: houseValueData,
+        borderColor: '#ff9800',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 2,
+        pointHoverRadius: 4
+      })
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: textColor, font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: dark ? 'rgba(30,30,30,0.95)' : 'rgba(255,255,255,0.95)',
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: gridColor,
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + formatMoney(context.raw)
+              }
+            }
+          },
+          annotation: {
+            annotations: data.filter(d => d.houseEvent).map(d => ({
+              type: 'line',
+              xMin: '第' + d.year + '年',
+              xMax: '第' + d.year + '年',
+              borderColor: '#ff9800',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              label: {
+                content: '🏠 买房',
+                position: 'start',
+                color: '#ff9800',
+                font: { size: 11 }
+              }
+            }))
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: textColor, font: { size: 11 }, maxTicksLimit: 12 },
+            grid: { color: gridColor }
+          },
+          y: {
+            ticks: {
+              color: textColor,
+              font: { size: 11 },
+              callback: function(value) { return formatMoney(value) }
+            },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    })
+  } catch (e) {
+    console.error('Chart render failed:', e)
+  }
 }
 
 onMounted(() => {
@@ -462,6 +615,9 @@ onMounted(() => {
 .fire-year-row.fire-achieved { background: rgba(76,175,80,0.12); color: #4caf50; font-weight: 600; }
 .fire-year-row.fire-house { background: rgba(255,152,0,0.1); }
 .fire-year-row.fire-negative { color: #ff5252; }
+
+.fire-chart-container { position: relative; height: 320px; margin-top: 16px; }
+.fire-chart-container canvas { width: 100% !important; height: 100% !important; }
 
 .fire-toggle { position: relative; display: inline-block; width: 48px; height: 26px; }
 .fire-toggle input { opacity: 0; width: 0; height: 0; }
