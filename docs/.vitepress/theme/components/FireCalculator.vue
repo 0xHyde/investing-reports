@@ -35,31 +35,54 @@
       </div>
     </div>
 
-    <!-- 支出 -->
+    <!-- 支出 — 分阶段 -->
     <div class="fire-card">
-      <div class="fire-card-title">💸 支出情况</div>
-      <div class="fire-input-row">
-        <div class="fire-input-group">
-          <label>月支出（不含房贷）</label>
-          <input type="number" v-model.number="monthlyExpense" placeholder="8000">
+      <div class="fire-card-title">💸 支出情况（分阶段）</div>
+
+      <!-- 退休前支出 -->
+      <div class="fire-expense-section">
+        <div class="fire-expense-title">🏢 退休前支出（工作期间）</div>
+        <div class="fire-input-row">
+          <div class="fire-input-group">
+            <label>月支出（不含房贷）</label>
+            <input type="number" v-model.number="preMonthlyExpense" placeholder="10000">
+          </div>
+          <div class="fire-input-group">
+            <label>年额外支出</label>
+            <input type="number" v-model.number="preYearExtraExpense" placeholder="30000">
+          </div>
         </div>
-        <div class="fire-input-group">
-          <label>年额外支出</label>
-          <input type="number" v-model.number="yearExtraExpense" placeholder="20000">
-        </div>
-      </div>
-      <div class="fire-input-row">
-        <div class="fire-input-group">
-          <label>弹性支出占比（%）</label>
-          <input type="number" v-model.number="flexibleRatio" placeholder="30" min="0" max="100">
-        </div>
-        <div class="fire-input-group">
-          <label>熊市弹性压缩（%）</label>
-          <input type="number" v-model.number="flexibleCut" placeholder="50" min="0" max="100">
+        <div class="fire-hint" style="text-align: left; font-size: 12px; padding: 8px 0 0 0;">
+          含：<span style="color: var(--vp-c-brand-1);">房贷/房租、通勤、职业社交、子女教育</span>等。退休后这些支出大概率消失或大幅减少。
         </div>
       </div>
-      <div class="fire-hint" style="text-align: left; font-size: 12px; padding: 0;">
-        💡 弹性支出 = 可压缩的非必需开支（旅游、娱乐等）。熊市时自动按设定比例压缩。
+
+      <!-- 退休后支出 -->
+      <div class="fire-expense-section fire-expense-retire">
+        <div class="fire-expense-title">🌴 退休后支出（Fire 后）</div>
+        <div class="fire-input-row">
+          <div class="fire-input-group">
+            <label>月支出（不含房贷）</label>
+            <input type="number" v-model.number="postMonthlyExpense" placeholder="6000">
+          </div>
+          <div class="fire-input-group">
+            <label>年额外支出</label>
+            <input type="number" v-model.number="postYearExtraExpense" placeholder="20000">
+          </div>
+        </div>
+        <div class="fire-input-row">
+          <div class="fire-input-group">
+            <label>弹性支出占比（%）</label>
+            <input type="number" v-model.number="flexibleRatio" placeholder="30" min="0" max="100">
+          </div>
+          <div class="fire-input-group">
+            <label>熊市弹性压缩（%）</label>
+            <input type="number" v-model.number="flexibleCut" placeholder="50" min="0" max="100">
+          </div>
+        </div>
+        <div class="fire-hint" style="text-align: left; font-size: 12px; padding: 8px 0 0 0;">
+          含：<span style="color: #4caf50;">基础生活、医疗、旅游休闲、兴趣爱好</span>等。通常比工作期间低，但医疗支出会上升。
+        </div>
       </div>
     </div>
 
@@ -227,25 +250,49 @@
 
       <div class="fire-savings-rate">
         <div class="fire-rate">{{ savingsRate.toFixed(1) }}%</div>
-        <div class="fire-label">当前储蓄率</div>
+        <div class="fire-label">当前储蓄率（基于退休前支出）</div>
       </div>
 
+      <div class="fire-divider"></div>
+      
+      <div class="fire-card-title" style="font-size: 14px;">📊 支出对比</div>
       <div class="fire-result-detail">
         <div class="fire-detail-item">
-          <div class="fire-detail-value">{{ formatMoney(fireTarget) }}</div>
-          <div class="fire-detail-label">Fire 目标资产<br><small>（达成当年）</small></div>
+          <div class="fire-detail-value">{{ formatMoney(preAnnualExpense) }}</div>
+          <div class="fire-detail-label">🏢 退休前年支出</div>
         </div>
         <div class="fire-detail-item">
-          <div class="fire-detail-value">{{ formatMoney(fireAssets) }}</div>
-          <div class="fire-detail-label">Fire 时总资产</div>
+          <div class="fire-detail-value" style="color: #4caf50;">{{ formatMoney(postAnnualExpense) }}</div>
+          <div class="fire-detail-label">🌴 退休後年支出</div>
         </div>
+        <div class="fire-detail-item">
+          <div class="fire-detail-value">{{ formatMoney(fireTarget) }}</div>
+          <div class="fire-detail-label">Fire 目标资产<br><small>（退休后支出 ÷ 提款率）</small></div>
+        </div>
+        <div class="fire-detail-item">
+          <div class="fire-detail-value">{{ formatMoney(annualSavings) }}</div>
+          <div class="fire-detail-label">年储蓄<br><small>（收入 − 退休前支出）</small></div>
+        </div>
+      </div>
+
+      <div class="fire-divider"></div>
+
+      <div class="fire-result-detail">
         <div class="fire-detail-item">
           <div class="fire-detail-value">{{ formatMoney(annualIncome) }}</div>
           <div class="fire-detail-label">当前年收入</div>
         </div>
         <div class="fire-detail-item">
           <div class="fire-detail-value">{{ formatMoney(annualExpense) }}</div>
-          <div class="fire-detail-label">当前年支出</div>
+          <div class="fire-detail-label">当前年支出（退休前）</div>
+        </div>
+        <div class="fire-detail-item">
+          <div class="fire-detail-value">{{ formatMoney(fireAssets) }}</div>
+          <div class="fire-detail-label">Fire 时总资产</div>
+        </div>
+        <div class="fire-detail-item">
+          <div class="fire-detail-value">{{ formatMoney(fireTarget) }}</div>
+          <div class="fire-detail-label">Fire 目标资产<br><small>（达成当年）</small></div>
         </div>
       </div>
 
@@ -384,8 +431,15 @@ const otherIncome = ref(0)
 const passiveIncome = ref(0)
 const currentAssets = ref(100000)
 const currentAge = ref(30)
-const monthlyExpense = ref(8000)
-const yearExtraExpense = ref(20000)
+
+// 退休前支出
+const preMonthlyExpense = ref(10000)
+const preYearExtraExpense = ref(30000)
+
+// 退休后支出
+const postMonthlyExpense = ref(6000)
+const postYearExtraExpense = ref(20000)
+
 const flexibleRatio = ref(30)
 const flexibleCut = ref(50)
 const returnRate = ref(7)
@@ -427,8 +481,11 @@ const fireTarget = ref(0)
 const fireAssets = ref(0)
 const annualIncome = ref(0)
 const annualExpense = ref(0)
+const preAnnualExpense = ref(0)
+const postAnnualExpense = ref(0)
 const breakdown = ref([])
 const houseImpact = ref(null)
+const annualSavings = ref(0)
 const stressResult = ref(null)
 
 function formatMoney(num) {
@@ -469,7 +526,7 @@ function getMajorExpenseProb(age) {
 
 // ========== 工作期模拟 ==========
 function simulateWorkPhase(
-  startAssets, startIncome, startExpense,
+  startAssets, startIncome, startPreExpense, startPostExpense,
   enableHouseFlag, houseYearVal, housePriceVal, downPaymentRatioVal, loanRateVal, loanYearsVal
 ) {
   const r = returnRate.value / 100
@@ -489,7 +546,8 @@ function simulateWorkPhase(
   let mortgage = 0
   let mortgageYearsPaid = 0
   let income = startIncome
-  let expense = startExpense
+  let preExpense = startPreExpense
+  let postExpense = startPostExpense
   let years = 0
   const maxYears = 50
   const bd = []
@@ -517,8 +575,8 @@ function simulateWorkPhase(
       if (mortgageYearsPaid > loanYearsVal) mortgage = 0
     }
 
-    // 总支出 = 基础支出 + 月供
-    const totalExpense = expense + mortgage
+    // 总支出 = 退休前支出 + 月供
+    const totalExpense = preExpense + mortgage
 
     // 总收入 = 主动收入 + 被动收入
     const totalIncome = income + pi
@@ -533,9 +591,9 @@ function simulateWorkPhase(
     // 房产增值
     if (houseValue > 0) houseValue *= (1 + ha)
 
-    // Fire 判断（关键修复：用当年支出算目标）
+    // Fire 判断：用退休后支出算目标
     const totalAssets = assets + (enableHouseFlag && houseAsAsset.value ? houseValue : 0)
-    const adjustedTarget = (totalExpense - pi) / wr
+    const adjustedTarget = (postExpense + mortgage - pi) / wr
     const fireAchieved = totalAssets >= adjustedTarget
 
     bd.push({
@@ -546,6 +604,7 @@ function simulateWorkPhase(
       houseValue,
       income: totalIncome,
       expense: totalExpense,
+      postExpense,
       savings,
       ret: investmentReturn,
       target: adjustedTarget,
@@ -559,9 +618,10 @@ function simulateWorkPhase(
       break
     }
 
-    // 下年参数更新（注意：这里expense增长，但返回时要用增长前的值）
+    // 下年参数更新
     income = income * (1 + ig)
-    expense = expense * (1 + eg)
+    preExpense = preExpense * (1 + eg)
+    postExpense = postExpense * (1 + eg)
   }
 
   return {
@@ -571,9 +631,8 @@ function simulateWorkPhase(
     downPayment,
     fireAssets: achieved ? assets : 0,
     fireHouseValue: achieved ? houseValue : 0,
-    // 修复：返回Fire当年的总支出，不是增长后的
-    fireExpense: achieved ? (bd[bd.length - 1].expense) : 0,
-    fireMortgage: achieved ? (bd[bd.length - 1].expense > expense ? mortgage : 0) : 0,
+    fireExpense: achieved ? (bd[bd.length - 1].postExpense + (bd[bd.length - 1].expense > bd[bd.length - 1].postExpense ? mortgage : 0)) : 0,
+    fireMortgage: achieved ? (bd[bd.length - 1].expense > bd[bd.length - 1].postExpense ? mortgage : 0) : 0,
     fireMortgageYearsPaid: achieved ? mortgageYearsPaid : 0,
   }
 }
@@ -769,20 +828,21 @@ function simulateDeterministic(fireAssets, fireExpense, fireMortgage, fireMortga
 // ========== 主计算 ==========
 function calculateFire() {
   const ai = monthlySalary.value * 12 + yearEndBonus.value + otherIncome.value
-  const baseExpense = monthlyExpense.value * 12 + yearExtraExpense.value
-  const as = ai - baseExpense
+  const preAE = preMonthlyExpense.value * 12 + preYearExtraExpense.value
+  const postAE = postMonthlyExpense.value * 12 + postYearExtraExpense.value
+  const as = ai - preAE
   const sr = ai > 0 ? ((as / ai) * 100) : 0
 
   // 不买房版本
   const noHouse = simulateWorkPhase(
-    currentAssets.value, ai, baseExpense,
+    currentAssets.value, ai, preAE, postAE,
     false, 0, 0, 0, 0, 0
   )
 
   // 买房版本
   const withHouse = enableHouse.value
     ? simulateWorkPhase(
-        currentAssets.value, ai, baseExpense,
+        currentAssets.value, ai, preAE, postAE,
         true, houseYear.value, housePrice.value,
         downPaymentRatio.value, loanRate.value, loanYears.value
       )
@@ -793,7 +853,10 @@ function calculateFire() {
 
   showResult.value = true
   annualIncome.value = ai
-  annualExpense.value = baseExpense
+  annualExpense.value = preAE
+  preAnnualExpense.value = preAE
+  postAnnualExpense.value = postAE
+  annualSavings.value = as
   savingsRate.value = sr
   fireYears.value = achieved ? result.years : 0
   fireAge.value = achieved ? currentAge.value + result.years : null
@@ -1069,6 +1132,9 @@ onMounted(() => {
 .fire-year-row.fire-house { background: rgba(255,152,0,0.1); }
 .fire-year-row.fire-negative { color: #ff5252; }
 
+.fire-expense-section { background: var(--vp-c-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 3px solid var(--vp-c-brand-1); }
+.fire-expense-section.fire-expense-retire { border-left-color: #4caf50; }
+.fire-expense-title { font-size: 14px; font-weight: 600; color: var(--vp-c-text-1); margin-bottom: 12px; }
 .fire-chart-container { position: relative; height: 320px; margin-top: 16px; }
 .fire-chart-container canvas { width: 100% !important; height: 100% !important; }
 
